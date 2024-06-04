@@ -1,6 +1,23 @@
 //include guard to guard against multiple includes when linking
 #ifndef DEFS_H
-#define DFS_H
+#define DEFS_H
+
+#include "stdlib.h"
+#define DEBUG
+
+//debug macro
+#ifndef DEBUG
+#define ASSERT(n)
+#else
+#define ASSERT(n) \
+if(!(n)) { \
+printf("%s - Failed ", #n); \
+printf("on %s", __DATE__); \
+printf(" at %s", __TIME__); \
+printf(" in file: %s ", __FILE__); \
+printf("at Line %d ", __LINE__); \
+exit(1);}
+#endif
 
 //unsigned 64 bit integer used in the program
 typedef unsigned long long U64;
@@ -8,6 +25,7 @@ typedef unsigned long long U64;
 //define the name and number of squares considered by the board
 #define NAME "Vice 1.0"
 #define BRD_SQ_NUM 120
+#define MAX_GAME_MOVES 2048 //defines the max number of moves (in ply) that will be considered for a game
 
 //enumerate the names of the pieces
 enum {EMPTY, wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK};
@@ -30,6 +48,19 @@ enum{
 //adds true/false
 enum{FALSE, TRUE};
 
+//castling permissions for kingside/queenside for each side
+//uses 4 bits which hold 1/0 for allowed/not allowed to castle to corresponding side
+enum {WKCA = 1, WQCA = 2, BKCA = 4, BQCA = 8};
+
+//store history of game properties
+typedef struct {
+    int move;       //previous move
+    int castlePerm; //castling permissions from previous move(s)
+    int enPass;     //en passant permissions from previous move(s)
+    int fiftyMove;  //fifty move rule status from previous move(s)
+    U64 posKey;     //3x repetition status from previous move(s)
+} S_UNDO;
+
 //define main board structure
 typedef struct {
     //define array to track the piece currently on each square
@@ -44,9 +75,10 @@ typedef struct {
     int KingSQ[2];  //track squares on which the kings are placed
     int side;       //track of whose turn it is
     int enPass;     //track of en passant square
-    int fifty;      //detect fifty-move rule
+int fiftyMove;      //detect fifty-move rule
     int ply;        //track ply
     int hisPly;     //track total number of moves made over course of the game
+    int castlePerm; //track castling permissions for each side
     U64 posKey;     //unique position id to track 3-fold repetition
 
     //create piece trackers to evaluate positions
@@ -54,6 +86,30 @@ typedef struct {
     int notPawn[3]; //track the number of non-pawn pieces for each side
     int majPce[3];  //track the number of major pieces for each side
     int minPce[3];  //track the number of minor pieces for each side
+
+    S_UNDO history[MAX_GAME_MOVES]; //track history of the game in case we want to undo a move
+
+    //maintain piece list
+    //set maximum number of pieces on the board to 10
+    //pList[wN][0] = E1 adds a knight to E1
+    //pList[wN][1] = F1 adds a second, separate knight to F1
+    int pList[13][10];
+
 } S_BOARD;
+
+/* MACROS */
+//use to determine full-board index from file and rank
+//e.g. A1 = (A, 1) -> 21
+#define FR2SQ(f, r) ( (21 + (f) ) + ( (r) * (10) ))
+
+/* GLOBALS */
+//variables accessed everywhere use extern keyword
+//these allow us to convert between full-board and 64-square indices
+//not possible without these due to index mismatch in board representation
+extern int Sq120ToSq64[BRD_SQ_NUM]; //use to determine 64-square index from full-board index including out-of-bounds squares
+extern int Sq64ToSq120[64]; //used to determine full-board index based on 64-square index
+
+/* FUNCTIONS */
+extern void AllInit();
 
 #endif
