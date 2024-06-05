@@ -102,14 +102,35 @@ int fiftyMove;      //detect fifty-move rule
 //e.g. A1 = (A, 1) -> 21
 #define FR2SQ(f, r) ( (21 + (f) ) + ( (r) * (10) ))
 
+//shorthand to determine 64-bit board index from full-board index
+#define SQ64(sq120) Sq120ToSq64[sq120]
+//shorthand macro for PopBit
+#define POP(b) PopBit(b)
+//shorthand macro for CountBits
+#define CNT(b) CountBits(b)
+
+//macros for bitmasks
+#define CLRBIT(bb, sq) ((bb) &= ClearMask[(sq)])
+#define SETBIT(bb, sq) ((bb) |= SetMask[(sq)])
+
 /* GLOBALS */
 //variables accessed everywhere use extern keyword
 //these allow us to convert between full-board and 64-square indices
 //not possible without these due to index mismatch in board representation
 extern int Sq120ToSq64[BRD_SQ_NUM]; //use to determine 64-square index from full-board index including out-of-bounds squares
-extern int Sq64ToSq120[64]; //used to determine full-board index based on 64-square index
+extern int Sq64ToSq120[64]; //use to determine full-board index based on 64-square index
+
+//use to set and clear single bits on the bit board
+extern U64 SetMask[64];
+extern U64 ClearMask[64];
 
 /* FUNCTIONS */
+//init.c
 extern void AllInit();
+
+//bitboards.c
+extern int PopBit(U64 *bb);
+extern int CountBits(U64 b);
+extern void PrintBitBoard(U64 bb);
 
 #endif

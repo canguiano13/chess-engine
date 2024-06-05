@@ -1,26 +1,25 @@
 #include <stdio.h>
 #include "defs.h"
 #include "init.c"
+#include "bitboards.c"
 
 int main(){
     //initialzes game with starting values
     AllInit();
+    U64 playBitBoard = 0ULL;
     
-    int index;
-
-    //TODO: remove print statements
-    //print current board representations
-    for(index = 0; index < BRD_SQ_NUM; index++){
-        if(index%10==0) printf("\n");
-        printf("%5d", Sq120ToSq64[index]);
+    //show board after setting individual bit with bitmasks
+    for(int index = 0; index < 64; index++){
+        printf("Index: %d", index);
+        PrintBitBoard(SetMask[index]);
+        printf("\n");
     }
-
-    printf("\n\n");
-
-    for(index = 0; index < 64; index++){
-        if(index%8==0) printf("\n");
-        printf("%5d", Sq64ToSq120[index]);
+    //show board after clearing individual bits with bitmasks
+    for(int index = 0; index < 64; index++){
+        printf("Index: %d", index);
+        PrintBitBoard(ClearMask[index]);
+        printf("\n");
     }
-
+    
     return 0;
 }
