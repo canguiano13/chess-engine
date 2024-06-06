@@ -56,7 +56,7 @@ enum {WKCA = 1, WQCA = 2, BKCA = 4, BQCA = 8};
 typedef struct {
     int move;       //previous move
     int castlePerm; //castling permissions from previous move(s)
-    int enPass;     //en passant permissions from previous move(s)
+    int enPassant;     //en passant permissions from previous move(s)
     int fiftyMove;  //fifty move rule status from previous move(s)
     U64 posKey;     //3x repetition status from previous move(s)
 } S_UNDO;
@@ -74,8 +74,8 @@ typedef struct {
 
     int KingSQ[2];  //track squares on which the kings are placed
     int side;       //track of whose turn it is
-    int enPass;     //track of en passant square
-int fiftyMove;      //detect fifty-move rule
+    int enPassant;  //track of en passant square
+    int fiftyMove;  //detect fifty-move rule
     int ply;        //track ply
     int hisPly;     //track total number of moves made over course of the game
     int castlePerm; //track castling permissions for each side
@@ -113,6 +113,13 @@ int fiftyMove;      //detect fifty-move rule
 #define CLRBIT(bb, sq) ((bb) &= ClearMask[(sq)])
 #define SETBIT(bb, sq) ((bb) |= SetMask[(sq)])
 
+//fill 64 bits with random numbers (for position key)
+#define RAND_64 (       (U64) rand() + \
+                        (U64) rand() << 15 + \
+                        (U64) rand() << 30 + \
+                        (U64) rand() << 45 + \
+                        ((U64) rand() & 0xf) << 60      ) //generates last 4/64 bits
+
 /* GLOBALS */
 //variables accessed everywhere use extern keyword
 //these allow us to convert between full-board and 64-square indices
@@ -123,6 +130,11 @@ extern int Sq64ToSq120[64]; //use to determine full-board index based on 64-squa
 //use to set and clear single bits on the bit board
 extern U64 SetMask[64];
 extern U64 ClearMask[64];
+
+//arrays used later to generate position keys
+extern U64 PieceKeys[13][120];
+extern U64 CastleKeys[16];
+extern U64 SideKey;
 
 /* FUNCTIONS */
 //init.c

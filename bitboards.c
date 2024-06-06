@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "defs.h"
 
-//
+//bit table to index bits from the bitboard
 const int BitTable[64] = {
      63, 30, 3, 32, 25, 41, 22, 33, 
      15, 50, 42, 13, 11, 53, 19, 34, 

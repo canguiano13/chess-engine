@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "defs.h"
 #include "init.c"
 #include "bitboards.c"
@@ -20,6 +21,15 @@ int main(){
         PrintBitBoard(ClearMask[index]);
         printf("\n");
     }
+
+    int one = rand();
+    int two = rand();
+    int three = rand();
+    int four = rand();
+    printf("%X %X %X %X\n", one, two, three, four);
+
+    int Key = one ^ two ^ three ^ four;
+    printf("%X", Key);
     
     return 0;
 }

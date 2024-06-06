@@ -1,4 +1,5 @@
 #include "defs.h"
+#include "stdlib.h"
 
 //function will initialize values when the engine starts running
 int Sq120ToSq64[BRD_SQ_NUM]; 
@@ -7,6 +8,26 @@ int Sq64ToSq120[64];
 U64 SetMask[64];
 U64 ClearMask[64];
 
+//arrays used later to generate position keys and determine castling permissions
+U64 PieceKeys[13][120];
+U64 CastleKeys[16];
+//use to determine who's side is to move
+U64 SideKey;
+
+void InitHashKeys(){
+    int i, j;
+    for(i = 0; i < 13; i++){
+        for(j = 0; j < 120; j++){
+            PieceKeys[i][j] = RAND_64;
+        }
+    }
+
+    SideKey = RAND_64;
+
+    for(i = 0; i<16; i++){
+        CastleKeys[i] = RAND_64;
+    }
+}
 //set bit masks for setting/clearing individual board bits
 void InitBitMasks(){
     int index = 0;
@@ -56,4 +77,5 @@ void InitSq120to64(){
 void AllInit(){
     InitSq120to64();
     InitBitMasks();
+    InitHashKeys();
 }
