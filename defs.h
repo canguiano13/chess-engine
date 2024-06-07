@@ -43,7 +43,7 @@ enum{
     A5 = 61, B5, C5, D5, E5, F5, G5, H5,
     A6 = 71, B6, C6, D6, E6, F6, G6, H6,
     A7 = 81, B7, C7, D7, E7, F7, G7, H7,
-    A8 = 91, B8, C8, D8, E8, F8, G8, H8, NO_SQ //off-board square has value 99
+    A8 = 91, B8, C8, D8, E8, F8, G8, H8, NO_SQ, OFFBOARD //off-board square has value 99
 };
 //adds true/false
 enum{FALSE, TRUE};
@@ -83,7 +83,7 @@ typedef struct {
 
     //create piece trackers to evaluate positions
     int pceNum[13]; //track the number of pieces on the board for each piece type
-    int notPawn[3]; //track the number of non-pawn pieces for each side
+    int bigPce[3];  //track the number of non-pawn pieces for each side
     int majPce[3];  //track the number of major pieces for each side
     int minPce[3];  //track the number of minor pieces for each side
 
@@ -101,9 +101,10 @@ typedef struct {
 //use to determine full-board index from file and rank
 //e.g. A1 = (A, 1) -> 21
 #define FR2SQ(f, r) ( (21 + (f) ) + ( (r) * (10) ))
-
-//shorthand to determine 64-bit board index from full-board index
-#define SQ64(sq120) Sq120ToSq64[sq120]
+//shorthand to determine 64-board index from full-board index
+#define SQ64(sq120) (Sq120ToSq64[(sq120)])
+//shorthand to determine full-board index from 64-board index
+#define SQ120(sq64) (Sq64ToSq120[(sq64)])
 //shorthand macro for PopBit
 #define POP(b) PopBit(b)
 //shorthand macro for CountBits
@@ -145,4 +146,6 @@ extern int PopBit(U64 *bb);
 extern int CountBits(U64 b);
 extern void PrintBitBoard(U64 bb);
 
+//board.c
+extern void ResetBoard(S_BOARD *pos);
 #endif
