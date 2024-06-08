@@ -27,6 +27,8 @@ typedef unsigned long long U64;
 #define BRD_SQ_NUM 120
 #define MAX_GAME_MOVES 2048 //defines the max number of moves (in ply) that will be considered for a game
 
+#define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
 //enumerate the names of the pieces
 enum {EMPTY, wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK};
 //enumerate the ranks and files for the board
