@@ -117,10 +117,10 @@ typedef struct {
 #define SETBIT(bb, sq) ((bb) |= SetMask[(sq)])
 
 //fill 64 bits with random numbers (for position key)
-#define RAND_64 (       (U64) rand() + \
-                        (U64) rand() << 15 + \
-                        (U64) rand() << 30 + \
-                        (U64) rand() << 45 + \
+#define RAND_64 (       (U64) rand() | \
+                        (U64) rand() << 15 | \
+                        (U64) rand() << 30 | \
+                        (U64) rand() << 45 | \
                         ((U64) rand() & 0xf) << 60      ) //generates last 4/64 bits
 
 /* GLOBALS */
@@ -139,6 +139,12 @@ extern U64 PieceKeys[13][120];
 extern U64 CastleKeys[16];
 extern U64 SideKey;
 
+//use arrays to display pieces on board
+extern char PceChar[];
+extern char SideChar[];
+extern char RankChar[];
+extern char FileChar[];
+
 /* FUNCTIONS */
 //init.c
 extern void AllInit();
@@ -148,6 +154,11 @@ extern int PopBit(U64 *bb);
 extern int CountBits(U64 b);
 extern void PrintBitBoard(U64 bb);
 
+//hashkeys.c
+extern U64 GeneratePosKey(const S_BOARD *pos);
+
 //board.c
 extern void ResetBoard(S_BOARD *pos);
+extern int ParseFen(char *fen, S_BOARD *pos);
+void PrintBoard(S_BOARD *pos);
 #endif

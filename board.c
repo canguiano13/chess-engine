@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "defs.h"
 
-int Parse_Fen(char *fen, S_BOARD *pos){
+int ParseFen(char *fen, S_BOARD *pos){
     ASSERT(fen!=NULL);
     ASSERT(pos!=NULL);
     
@@ -17,7 +17,7 @@ int Parse_Fen(char *fen, S_BOARD *pos){
     ResetBoard(pos);
 
     //parse through fen notation
-    while((rank >= RANK_1) && *fen){
+    while((rank >= RANK_1) && (*fen)){
         count = 1;
         //check next character in fen and add piece to board
         switch (*fen){
@@ -47,12 +47,11 @@ int Parse_Fen(char *fen, S_BOARD *pos){
                 piece = EMPTY;  //add empty piece
                 count = *fen - '0'; //get empty square count
                 break;
-
             case '/':
             case ' ':
+                fen++; //move to next character in FEN
                 rank--; //move to previous rank
                 file = FILE_A; //reset file
-                fen++; //move to next character in FEN
                 continue;
             default:
                 printf("FEN ERROR \n");
@@ -79,7 +78,7 @@ int Parse_Fen(char *fen, S_BOARD *pos){
 
     //check castling permissions
     for(i=0; i<4; i++){
-        if(*fen = ' ') break; //break once no more permissions are stated
+        if(*fen == ' ') break; //break once no more permissions are stated
         switch(*fen){
             case 'K': pos->castlePerm |= WKCA; break;   //USE bitwise OR to establish castling permissions
             case 'Q': pos->castlePerm |= WQCA; break;
@@ -90,8 +89,9 @@ int Parse_Fen(char *fen, S_BOARD *pos){
         //move to next char in FEN
         fen++;
     }
+
     fen++; //move to en passant square
-    ASSERT(pos->castlePerm>=0 && pos->castlePerm<=15);
+    ASSERT(pos->castlePerm >=0 && pos->castlePerm <=15);
     
     //set en passant square if any exists
     if(*fen != '-'){
@@ -115,7 +115,7 @@ void ResetBoard(S_BOARD *pos){
 
     //mark all squares in full-board representation as offboard
     for(index = 0; index < BRD_SQ_NUM; index++){
-        pos->pieces[index] = OFFBOARD;
+        pos->pieces[index] = NO_SQ;
     }
     //set on-board squares to empty
     for(index = 0; index < 64; index++){
@@ -145,4 +145,36 @@ void ResetBoard(S_BOARD *pos){
     //reset positionID
     pos->posKey = 0;
 
+}
+
+void PrintBoard(S_BOARD *pos){
+    int sq, rank, piece;
+    int file = FILE_A;
+
+    printf("\nGAME BOARD:\n\n");
+
+    for(rank=RANK_8; rank>=RANK_1; rank--){
+        printf("%d  ", rank+1); //add 1 to rank since they are zero-indexed
+        for(file = FILE_A; file <= FILE_H; file++){
+            sq = FR2SQ(file, rank);
+            piece = pos->pieces[sq];
+            printf("%3c", PceChar[piece]);
+        }
+        printf("\n");
+    }
+
+    printf("\n  ");
+    for(file = FILE_A; file <= FILE_H; file++){
+        printf("%3c", 'a' + file);
+    }
+
+    printf("\n");
+    printf("side: %c\n", SideChar[pos->side]);
+    printf("enPas: %d\n", pos->enPassant);
+    printf("castle:%c%c%c%c\n", 
+        pos->castlePerm & WKCA ?'K':'-',
+        pos->castlePerm & WQCA ?'Q':'-',
+        pos->castlePerm & BKCA ?'k':'-',
+        pos->castlePerm & BQCA ?'q':'-');
+    printf("PosKey: %11X\n", pos->posKey);
 }
