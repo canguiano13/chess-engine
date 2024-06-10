@@ -85,9 +85,10 @@ typedef struct {
 
     //create piece trackers to evaluate positions
     int pceNum[13]; //track the number of pieces on the board for each piece type
-    int bigPce[3];  //track the number of non-pawn pieces for each side
-    int majPce[3];  //track the number of major pieces for each side
-    int minPce[3];  //track the number of minor pieces for each side
+    int bigPce[2];  //track the number of non-pawn pieces for each side
+    int majPce[2];  //track the number of major pieces for each side
+    int minPce[2];  //track the number of minor pieces for each side
+    int material[2]; //track the total amount of material for each side
 
     S_UNDO history[MAX_GAME_MOVES]; //track history of the game in case we want to undo a move
 
@@ -145,6 +146,17 @@ extern char SideChar[];
 extern char RankChar[];
 extern char FileChar[];
 
+//use arrays to track each type of piece for both sides
+extern int PieceBig[13];
+extern int PieceMaj[13];
+extern int PieceMin[13];
+extern int PieceVal[13];
+extern int PieceCol[13];
+
+//use arrays to determine rank/file for a given square
+extern int FilesBrd[BRD_SQ_NUM];
+extern int RanksBrd[BRD_SQ_NUM];
+
 /* FUNCTIONS */
 //init.c
 extern void AllInit();
@@ -160,5 +172,6 @@ extern U64 GeneratePosKey(const S_BOARD *pos);
 //board.c
 extern void ResetBoard(S_BOARD *pos);
 extern int ParseFen(char *fen, S_BOARD *pos);
-void PrintBoard(S_BOARD *pos);
+extern void PrintBoard(S_BOARD *pos);
+extern void UpdateListsMaterial(S_BOARD *pos);
 #endif

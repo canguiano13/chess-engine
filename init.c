@@ -14,6 +14,30 @@ U64 CastleKeys[16];
 //use to determine who's side is to move
 U64 SideKey;
 
+int FilesBrd[BRD_SQ_NUM];
+int RanksBrd[BRD_SQ_NUM];
+
+void InitFilesRanksBrd(){
+    int i = 0;
+    int file = FILE_A;
+    int rank = RANK_1;
+    int sq = A1;
+    int sq64 = 0;
+
+    for(i = 0; i<BRD_SQ_NUM; i++){
+        FilesBrd[i] = OFFBOARD;
+        RanksBrd[i] = OFFBOARD;
+    }
+
+    for(rank = RANK_1; rank <= RANK_8; rank++){
+        for(file = FILE_A; file <= FILE_H; file++){
+            sq = FR2SQ(file, rank);
+            FilesBrd[sq] = file;
+            RanksBrd[sq] = rank;
+        }
+    }
+}
+
 void InitHashKeys(){
     int i, j;
     for(i = 0; i < 13; i++){
@@ -78,4 +102,5 @@ void AllInit(){
     InitSq120to64();
     InitBitMasks();
     InitHashKeys();
+    InitFilesRanksBrd();
 }

@@ -2,6 +2,34 @@
 #include <stdio.h>
 #include "defs.h"
 
+//build or update piece lists
+void UpdateListsMaterial(S_BOARD *pos){
+    int piece, sq, index, color;
+    
+    //iterate over board and extract information from the pieces currently on the board
+    for(int i = 0; i < BRD_SQ_NUM; i++){
+        sq = index;
+        piece = pos->pieces[i];
+        if(piece != OFFBOARD && piece!= EMPTY){
+            color = PieceCol[piece];
+
+            if(PieceBig[piece] == TRUE) pos->bigPce[color]++;
+            if(PieceMin[piece] == TRUE) pos->majPce[color]++;
+            if(PieceMaj[piece] == TRUE) pos->minPce[color]++;
+
+            pos->material[color] += PieceVal[piece];
+
+            pos->pList[piece][pos->pceNum[piece]] = sq;
+            pos->pceNum[piece]++;
+
+            //set king squares
+            if(piece == wK) pos->KingSQ[WHITE] = sq;
+            if(piece == bK) pos->KingSQ[BLACK] = sq;
+        }
+
+    }
+}
+
 int ParseFen(char *fen, S_BOARD *pos){
     ASSERT(fen!=NULL);
     ASSERT(pos!=NULL);
@@ -106,6 +134,9 @@ int ParseFen(char *fen, S_BOARD *pos){
 
     //generate positionID based on current position;
     pos->posKey = GeneratePosKey(pos);
+
+    //update piece lists arrays
+    //UpdateListsMaterial(pos);
 
     return 0;
 }
