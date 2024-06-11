@@ -2,22 +2,108 @@
 #include <stdio.h>
 #include "defs.h"
 
+int CheckBoard(const S_BOARD *pos){
+    //setup temporary variables to hold information mirroring current position
+    int t_pceNum[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int t_bigPce[2] = {0, 0};
+    int t_majPce[2] = {0, 0};
+    int t_minPce[2] = {0, 0};
+    int t_material[2] = {0, 0};
+
+    int sq64, t_piece, t_pce_num, sq120, color, pcount;
+
+    U64 t_pawns[3] = {0ULL, 0ULL, 0ULL};
+
+    t_pawns[WHITE] = pos->pawns[WHITE];
+    t_pawns[BLACK] = pos->pawns[BLACK];
+    t_pawns[BOTH] = pos->pawns[BOTH];
+
+    //check piece lists
+    for(t_piece = wP; t_piece <= bK; t_piece++){
+        for(t_pce_num = 0; t_pce_num < pos->pceNum[t_piece]; t_pce_num++){
+            sq120 = pos->pList[t_piece][t_pce_num];
+            ASSERT(pos->pieces[sq120] == t_piece);
+        }
+    }
+
+    //check piece count and other counters
+    for(sq64 = 0; sq64 < 64; ++sq64){
+        sq120 = SQ120(sq64);
+        t_piece = pos->pieces[sq120];
+        t_pceNum[t_piece]++;
+        color = PieceCol[t_piece];
+
+        if(PieceBig[t_piece] == TRUE) t_bigPce[color]++;
+        if(PieceMin[t_piece] == TRUE) t_minPce[color]++;
+        if(PieceMaj[t_piece] == TRUE) t_majPce[color]++;
+
+        t_material[color] += PieceVal[t_piece];
+    }
+
+    for(t_piece = wP; t_piece <= bK; t_piece++){
+        ASSERT(t_pceNum[t_piece] == pos->pceNum[t_piece]);
+    }
+
+    //check bitboards count
+    pcount = CNT(t_pawns[WHITE]);
+    ASSERT(pcount == pos->pceNum[wP]);
+    pcount = CNT(t_pawns[BLACK]);
+    ASSERT(pcount == pos->pceNum[bP]);
+    pcount = CNT(t_pawns[BOTH]);
+    ASSERT(pcount == pos->pceNum[wP] + pos->pceNum[bP]);
+
+    //check bitboards squares
+    while(t_pawns[WHITE]){
+        sq64 = POP(&t_pawns[WHITE]);
+        ASSERT(pos->pieces[SQ120(sq64)] == wP);
+    }
+    while(t_pawns[BLACK]){
+        sq64 = POP(&t_pawns[BLACK]);
+        ASSERT(pos->pieces[SQ120(sq64)] == bP);
+    }
+    while(t_pawns[BOTH]){
+        sq64 = POP(&t_pawns[BOTH]);
+        ASSERT(     (pos->pieces[SQ120(sq64)] == wP) || (pos->pieces[SQ120(sq64)] == bP)    );
+    }
+
+    ASSERT(t_material[WHITE]==pos->material[WHITE] && t_material[BLACK]==pos->material[BLACK]);
+    ASSERT(t_minPce[WHITE]==pos->minPce[WHITE] && t_minPce[BLACK]==pos->minPce[BLACK]);
+    ASSERT(t_majPce[WHITE]==pos->majPce[WHITE] && t_majPce[BLACK]==pos->majPce[BLACK]);
+    ASSERT(t_bigPce[WHITE]==pos->bigPce[WHITE] && t_bigPce[BLACK]==pos->bigPce[BLACK]);
+
+    ASSERT(pos->side==WHITE || pos->side==BLACK);
+    ASSERT(GeneratePosKey(pos) == pos->posKey);
+
+    ASSERT(pos->enPassant == NO_SQ ||
+            (RanksBrd[pos->enPassant] == RANK_6 && pos->side == WHITE) ||
+            (RanksBrd[pos->enPassant] == RANK_3 && pos->side == BLACK));
+
+    ASSERT(pos->pieces[pos->KingSQ[WHITE]] == wK);
+    ASSERT(pos->pieces[pos->KingSQ[BLACK]] == bK);
+
+    return TRUE;
+}
+
 //build or update piece lists
 void UpdateListsMaterial(S_BOARD *pos){
     int piece, sq, index, color;
     
     //iterate over board and extract information from the pieces currently on the board
-    for(int i = 0; i < BRD_SQ_NUM; i++){
+    for(index = 0; index < BRD_SQ_NUM; index++){
         sq = index;
-        piece = pos->pieces[i];
-        if(piece != OFFBOARD && piece!= EMPTY){
+        piece = pos->pieces[index];
+        if(piece != OFFBOARD && piece != EMPTY){
             color = PieceCol[piece];
 
+            //add to corresponding piece counter if necessary
             if(PieceBig[piece] == TRUE) pos->bigPce[color]++;
-            if(PieceMin[piece] == TRUE) pos->majPce[color]++;
-            if(PieceMaj[piece] == TRUE) pos->minPce[color]++;
-
+            if(PieceMin[piece] == TRUE) pos->minPce[color]++;
+            if(PieceMaj[piece] == TRUE) pos->majPce[color]++;
+            
+            //add to side's total material
             pos->material[color] += PieceVal[piece];
+
+            ASSERT(pos->pceNum[piece] < 10 && pos->pceNum[piece] >= 0);
 
             pos->pList[piece][pos->pceNum[piece]] = sq;
             pos->pceNum[piece]++;
@@ -25,11 +111,21 @@ void UpdateListsMaterial(S_BOARD *pos){
             //set king squares
             if(piece == wK) pos->KingSQ[WHITE] = sq;
             if(piece == bK) pos->KingSQ[BLACK] = sq;
+
+            if(piece == wP){
+                SETBIT(pos->pawns[WHITE], SQ64(sq));
+                SETBIT(pos->pawns[BOTH], SQ64(sq));
+            }
+            if(piece == bP){
+                SETBIT(pos->pawns[BLACK], SQ64(sq));
+                SETBIT(pos->pawns[BOTH], SQ64(sq));
+            }
         }
 
     }
 }
 
+//update piece lists based on FEN record
 int ParseFen(char *fen, S_BOARD *pos){
     ASSERT(fen!=NULL);
     ASSERT(pos!=NULL);
@@ -77,8 +173,8 @@ int ParseFen(char *fen, S_BOARD *pos){
                 break;
             case '/':
             case ' ':
-                fen++; //move to next character in FEN
                 rank--; //move to previous rank
+                fen++; //move to next character in FEN
                 file = FILE_A; //reset file
                 continue;
             default:
@@ -119,6 +215,7 @@ int ParseFen(char *fen, S_BOARD *pos){
     }
 
     fen++; //move to en passant square
+
     ASSERT(pos->castlePerm >=0 && pos->castlePerm <=15);
     
     //set en passant square if any exists
@@ -136,27 +233,31 @@ int ParseFen(char *fen, S_BOARD *pos){
     pos->posKey = GeneratePosKey(pos);
 
     //update piece lists arrays
-    //UpdateListsMaterial(pos);
+    UpdateListsMaterial(pos);
 
     return 0;
 }
 
+//reset all pieces on board
 void ResetBoard(S_BOARD *pos){
     int index = 0;
 
     //mark all squares in full-board representation as offboard
     for(index = 0; index < BRD_SQ_NUM; index++){
-        pos->pieces[index] = NO_SQ;
+        pos->pieces[index] = OFFBOARD;
     }
     //set on-board squares to empty
     for(index = 0; index < 64; index++){
         pos->pieces[SQ120(index)] = EMPTY;
     }
     //reset individual piece trackers
-    for(index = 0; index < 3; index++){
+    for(index = 0; index < 2; index++){
         pos->bigPce[index] = 0;
         pos->majPce[index] = 0;
         pos->minPce[index] = 0;
+        pos->material[index] = 0;
+    }
+    for(index = 0; index < 3; ++index){
         pos->pawns[index] = 0ULL;
     }
     //reset overall piece counter
@@ -174,8 +275,7 @@ void ResetBoard(S_BOARD *pos){
     pos->ply = 0;
     pos->hisPly = 0;
     //reset positionID
-    pos->posKey = 0;
-
+    pos->posKey = 0LL;
 }
 
 void PrintBoard(S_BOARD *pos){

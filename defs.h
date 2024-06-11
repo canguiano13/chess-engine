@@ -3,6 +3,7 @@
 #define DEFS_H
 
 #include "stdlib.h"
+#include <stdio.h>
 #define DEBUG
 
 //debug macro
@@ -47,7 +48,7 @@ enum{
     A7 = 81, B7, C7, D7, E7, F7, G7, H7,
     A8 = 91, B8, C8, D8, E8, F8, G8, H8, NO_SQ, OFFBOARD //off-board square has value 99
 };
-//adds true/false
+//add true/false
 enum{FALSE, TRUE};
 
 //castling permissions for kingside/queenside for each side
@@ -174,4 +175,6 @@ extern void ResetBoard(S_BOARD *pos);
 extern int ParseFen(char *fen, S_BOARD *pos);
 extern void PrintBoard(S_BOARD *pos);
 extern void UpdateListsMaterial(S_BOARD *pos);
+extern int CheckBoard(const S_BOARD *pos);
+
 #endif
