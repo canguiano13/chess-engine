@@ -118,6 +118,12 @@ typedef struct {
 #define CLRBIT(bb, sq) ((bb) &= ClearMask[(sq)])
 #define SETBIT(bb, sq) ((bb) |= SetMask[(sq)])
 
+//macros for piece validators
+#define IsBQ(p) (PieceBishopQueen[(p)])
+#define IsRQ(p) (PieceRookQueen[(p)])
+#define IsKN(p) (PieceKnight[(p)])
+#define IsKI(p) (PieceKing[(p)])
+
 //fill 64 bits with random numbers (for position key)
 #define RAND_64 (       (U64) rand() | \
                         (U64) rand() << 15 | \
@@ -158,6 +164,12 @@ extern int PieceCol[13];
 extern int FilesBrd[BRD_SQ_NUM];
 extern int RanksBrd[BRD_SQ_NUM];
 
+//returns true for the corresponing piece, and false otherwise
+extern int PieceKnight[13];
+extern int PieceKing[13];
+extern int PieceRookQueen[13];
+extern int PieceBishopQueen[13];
+
 /* FUNCTIONS */
 //init.c
 extern void AllInit();
@@ -176,5 +188,8 @@ extern int ParseFen(char *fen, S_BOARD *pos);
 extern void PrintBoard(S_BOARD *pos);
 extern void UpdateListsMaterial(S_BOARD *pos);
 extern int CheckBoard(const S_BOARD *pos);
+
+//attack.c
+extern int SqAttacked(const int sq, const int side, const S_BOARD *pos);
 
 #endif
