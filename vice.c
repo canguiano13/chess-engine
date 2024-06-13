@@ -7,6 +7,7 @@
 #include "defs.h"
 #include "hashkeys.c"
 #include "init.c"
+#include "io.c"
 
 
 //Temporary FEN positions to demonstrate printboard
@@ -37,21 +38,17 @@ int main(){
     PrintBoard(board);
     ASSERT(CheckBoard(board));
 
-    //make a move on the board
+    //print a move and square on the board
     int move = 0;
-    int from = 6;
-    int to = 12;
-    int captured = wR;
-    int promoted = bR;
-    move = (from) | (to << 7) | (captured << 14) | (promoted << 20);
-    printf("\ndec:%d, hex: %X\n", move, move);
-    PrintBinary(move);
-    printf("\n");
-
-    printf("from:%d to:%d: cap:%d prom:%d\n", FROMSQ(move), TOSQ(move), CAPTURED(move), PROMOTED(move));
+    int from = A2; int to = H7;
+    int cap = wR; int prom = bQ;
+    move = ( (from) | (to<<7) | (cap<<14) | (prom<<20));
 
     //move |= MFLAGPS;
-    printf("Move started with pawn? %s", ((move & MFLAGPS)?"YES":"NO"));
+    printf("from:%d to:%d, cap:%d, prom:%d\n", FROMSQ(move), TOSQ(move), CAPTURED(move), PROMOTED(move));
 
+    printf("Algebraic from: %s\n", PrSq(from));
+    printf("Algebraic to: %s\n", PrSq(to));
+    printf("Algebraic Move: %s\n", PrMove(move));
     return 0;
 }

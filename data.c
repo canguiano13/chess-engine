@@ -3,7 +3,7 @@
 char PceChar[] = ".PNBRQKpnbrqk";
 char SideChar[] = "wb-";
 char RankChar[] = "12345678";
-char Filechar[] = "abcdefgh";
+char FileChar[] = "abcdefgh";
 
 //Information for piece counters
 int PieceBig[13] = {FALSE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE};
