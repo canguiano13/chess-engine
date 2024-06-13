@@ -55,6 +55,12 @@ enum{FALSE, TRUE};
 //uses 4 bits which hold 1/0 for allowed/not allowed to castle to corresponding side
 enum {WKCA = 1, WQCA = 2, BKCA = 4, BQCA = 8};
 
+//structure for individual game moves
+typedef struct{
+    int move;  //stores information about actual move
+    int score; //helps move search tree
+} S_MOVE;
+
 //store history of game properties
 typedef struct {
     int move;       //previous move
@@ -100,6 +106,28 @@ typedef struct {
     int pList[13][10];
 
 } S_BOARD;
+
+/* GAME MOVE */
+/*
+    Using bits, we store information about a given move:
+    7 bits - SqFrom
+    7 bits - SqTo
+    4 bits - Captured
+    1 bit - EnPassant?
+    1 bit - Pawn start
+    4 bits - Piece Promotion?
+    1 bit - Castle?
+*/
+#define FROMSQ(m) ((m) & 0x7F)
+#define TOSQ(m) ((m>>7) & 0x7F)
+#define CAPTURED(m) ((m>>14) & 0xF)
+#define PROMOTED(m) ((m>>20) & 0xF)
+
+#define MFLAGEP 0x40000
+#define MFLAGPS 0x80000
+#define MFLAGCA 0x1000000
+#define MFLAGCAP 0x7c000
+#define MFLAGPROM 0xF00000
 
 /* MACROS */
 //use to determine full-board index from file and rank

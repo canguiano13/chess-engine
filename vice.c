@@ -17,24 +17,14 @@
 #define TEMP_FEN2 "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1" //FEN to test asserts
 #define TEMP_FEN3 "8/3q1p2/8/5P2/4Q3/8/8/8 w - - 0 1" //FEN of illegal positino to test SqAttacked()
 
-void ShowSqAtBySide(const int side, const S_BOARD *pos){
-    int rank = 0;
-    int file = 0;
-    int sq = 0;
-
-    printf("\n\nSquares attacked by: %c\n", SideChar[side]);
-    for(rank =RANK_8; rank >= RANK_1; rank--){
-        for(file = FILE_A; file <= FILE_H; file++){
-            sq = FR2SQ(file, rank);
-            if(SqAttacked(sq, side, pos) == TRUE){
-                printf("X");
-            }
-            else{
-                printf("-");
-            }
-        }
-        printf("\n");
-    }
+void PrintBinary(int move){
+    int index = 0;
+    printf("As Binary:\n");
+    for(index = 27; index >=0; index--){
+        if( (1<<index) & move) printf("1");
+        else printf("0");
+        if(index !=28 && index%4==0) printf("   ");
+     }
 }
 
 int main(){
@@ -43,14 +33,25 @@ int main(){
     
     S_BOARD board[1];
 
-    ParseFen(TEMP_FEN3, board);
+    ParseFen(TEMP_FEN2, board);
     PrintBoard(board);
+    ASSERT(CheckBoard(board));
 
-    printf("\n\nWhite Attacking:");
-    ShowSqAtBySide(WHITE, board);
+    //make a move on the board
+    int move = 0;
+    int from = 6;
+    int to = 12;
+    int captured = wR;
+    int promoted = bR;
+    move = (from) | (to << 7) | (captured << 14) | (promoted << 20);
+    printf("\ndec:%d, hex: %X\n", move, move);
+    PrintBinary(move);
+    printf("\n");
 
-    printf("\n\nBlack Attacking:");
-    ShowSqAtBySide(BLACK, board);
+    printf("from:%d to:%d: cap:%d prom:%d\n", FROMSQ(move), TOSQ(move), CAPTURED(move), PROMOTED(move));
+
+    //move |= MFLAGPS;
+    printf("Move started with pawn? %s", ((move & MFLAGPS)?"YES":"NO"));
 
     return 0;
 }
