@@ -27,6 +27,7 @@ typedef unsigned long long U64;
 #define NAME "Vice 1.0"
 #define BRD_SQ_NUM 120
 #define MAX_GAME_MOVES 2048 //defines the max number of moves (in ply) that will be considered for a game
+#define MAX_POS_MOVES 256 //maximum possible number of available moves in any single position
 
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -60,6 +61,11 @@ typedef struct{
     int move;  //stores information about actual move
     int score; //helps move search tree
 } S_MOVE;
+
+typedef struct{
+    S_MOVE moves[MAX_POS_MOVES];
+    int count;
+} S_MOVELIST;
 
 //store history of game properties
 typedef struct {
@@ -223,5 +229,16 @@ extern int SqAttacked(const int sq, const int side, const S_BOARD *pos);
 //io.c
 extern char *PrSq(const int sq);
 extern char *PrMove(const int move);
+extern void PrintMoveList(const S_MOVELIST *list);
+
+//validate.c
+extern int SqOnBoard(const int sq);
+extern int SideValid(const int side);
+extern int FileRankValid(const int fr);
+extern int PieceValid(const int pce);
+extern int PieceValidOrEmpty(const int pce);
+
+//movegen.c
+extern void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list);
 
 #endif

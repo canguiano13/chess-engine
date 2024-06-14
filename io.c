@@ -1,7 +1,7 @@
 #include "defs.h"
 #include <stdio.h>
 
-//print moves in algebraic notation
+//print board square using algebraic notation
 char *PrSq(const int sq){
     static char SqStr[3];
 
@@ -13,6 +13,7 @@ char *PrSq(const int sq){
     return SqStr;
 }
 
+//print move in algebraic notation
 char *PrMove(const int move){
     static char MvStr[6];
     //establish square piece was moved from
@@ -20,7 +21,7 @@ char *PrMove(const int move){
     int rf = RanksBrd[(FROMSQ(move))];
     //establish square piece was moved to
     int ft = FilesBrd[(TOSQ(move))]; 
-    int rt = FilesBrd[(TOSQ(move))];
+    int rt = RanksBrd[(TOSQ(move))];
 
     int promoted = PROMOTED(move);
 
@@ -39,4 +40,18 @@ char *PrMove(const int move){
     }
 
     return MvStr;
+}
+
+void PrintMoveList(const S_MOVELIST *list){
+    int index = 0;
+    int score = 0;
+    int move = 0;
+
+    printf("MoveList:\n");
+    for(index = 0; index < list->count; index++){
+        move = list->moves[index].move;
+        score = list->moves[index].score;
+        printf("Move:%d > %s (score: %d)\n", index+1, PrMove(move), score);
+    }
+    printf("Total: %d Moves\n\n", list->count);
 }
