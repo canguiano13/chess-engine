@@ -18,7 +18,7 @@ int PieceValid(const int pce){
     return (pce >= wP && pce <= bK) ? 1:0;
 }
 
-int PieceValidOrEmpty(const int pce){
+int PieceValidEmpty(const int pce){
     return (pce >= EMPTY && pce <= bK) ? 1:0;
 }
 
