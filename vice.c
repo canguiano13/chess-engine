@@ -8,6 +8,7 @@
 #include "hashkeys.c"
 #include "init.c"
 #include "io.c"
+#include "makemove.c"
 #include "movegen.c"
 #include "validate.c"
 

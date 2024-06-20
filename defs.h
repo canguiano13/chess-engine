@@ -92,7 +92,7 @@ typedef struct {
     int enPassant;  //track of en passant square
     int fiftyMove;  //detect fifty-move rule
     int ply;        //track ply
-    int hisPly;     //track total number of moves made over course of the game
+    int hisPly;     //track history of ply (used to index history array)
     int castlePerm; //track castling permissions for each side
     U64 posKey;     //unique position id to track 3-fold repetition
 
@@ -191,6 +191,7 @@ extern char FileChar[];
 extern int PieceBig[13];
 extern int PieceMaj[13];
 extern int PieceMin[13];
+extern int PiecePawn[13];
 extern int PieceVal[13];
 extern int PieceCol[13];
 
@@ -238,6 +239,10 @@ extern int SideValid(const int side);
 extern int FileRankValid(const int fr);
 extern int PieceValid(const int pce);
 extern int PieceValidEmpty(const int pce);
+
+//makemove.c
+extern int MakeMove(S_BOARD *pos, int move);
+extern void TakeMove(S_BOARD *pos);
 
 //movegen.c
 extern void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list);

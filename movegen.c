@@ -126,7 +126,6 @@ void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list){
     int dir = 0;
     int index = 0;
     int pceIndex = 0;
-    printf("\nSide: %d\n", side);
 
     if(side == WHITE){
         for(pceNum = 0; pceNum < pos->pceNum[wP]; pceNum++){

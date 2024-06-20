@@ -1,0 +1,14 @@
+making a move:
+1. make(move)
+2. get from, to, and cap values
+3. store the current position in history array
+4. move the current piece from -> to
+5. if a capture was made, remove captured piece from piece list
+6. update 50 move rule or reset it
+7. handle promotions
+8. handle enpass captures
+9. Set enpass square if needed
+10. For all pieces added, moved, removed, update all position counters and piece lists
+11. Maintain hashkey
+12. update castle permissions
+13. change side, increment ply/halfPly
