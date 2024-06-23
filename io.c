@@ -26,13 +26,13 @@ char *PrMove(const int move){
     int promoted = PROMOTED(move);
 
     if(promoted){
-        char pchar = 'Q'; //assume promotion was to queen, then check for other pieces
+        char pchar = 'q'; //assume promotion was to queen, then check for other pieces
         if(IsKN(promoted)){
-            pchar = 'N';
+            pchar = 'n';
         } else if(IsRQ(promoted) && !IsBQ(promoted)){
-            pchar = 'R';
+            pchar = 'r';
         } else if(!IsRQ(promoted) && IsBQ(promoted)){
-            pchar = 'B';
+            pchar = 'b';
         }
         sprintf(MvStr, "%c%c%c%c%c", ('a'+ff), ('1'+rf), ('a'+ft), ('1'+rt), pchar);
     } else{

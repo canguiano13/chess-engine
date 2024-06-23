@@ -7,7 +7,7 @@
 //generate a unique position ID based on current board position
 U64 GeneratePosKey(const S_BOARD *pos){
     int sq = 0;
-    U64 finalKey = 0ULL;
+    U64 finalKey = 0;
     int piece = EMPTY;
 
     //generate hash based on pieces on board
@@ -19,7 +19,7 @@ U64 GeneratePosKey(const S_BOARD *pos){
         }
     }
     //modify key when it is white's turn to move
-    if(pos -> side == WHITE){
+    if(pos->side == WHITE){
         finalKey ^= SideKey;
     }
     //modify key when en passant is possible

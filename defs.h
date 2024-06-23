@@ -4,7 +4,8 @@
 
 #include "stdlib.h"
 #include <stdio.h>
-#define DEBUG
+
+//#define DEBUG
 
 //debug macro
 #ifndef DEBUG
@@ -191,7 +192,6 @@ extern char FileChar[];
 extern int PieceBig[13];
 extern int PieceMaj[13];
 extern int PieceMin[13];
-extern int PiecePawn[13];
 extern int PieceVal[13];
 extern int PieceCol[13];
 
@@ -200,6 +200,7 @@ extern int FilesBrd[BRD_SQ_NUM];
 extern int RanksBrd[BRD_SQ_NUM];
 
 //returns true for the corresponing piece, and false otherwise
+extern int PiecePawn[13];
 extern int PieceKnight[13];
 extern int PieceKing[13];
 extern int PieceRookQueen[13];
@@ -246,5 +247,9 @@ extern void TakeMove(S_BOARD *pos);
 
 //movegen.c
 extern void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list);
+
+//perft.c
+extern void PerftTest(int depth, S_BOARD *pos);
+
 
 #endif

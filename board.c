@@ -19,8 +19,8 @@ int CheckBoard(const S_BOARD *pos){
     t_pawns[BOTH] = pos->pawns[BOTH];
 
     //check piece lists
-    for(t_piece = wP; t_piece <= bK; t_piece++){
-        for(t_pce_num = 0; t_pce_num < pos->pceNum[t_piece]; t_pce_num++){
+    for(t_piece = wP; t_piece <= bK; ++t_piece){
+        for(t_pce_num = 0; t_pce_num < pos->pceNum[t_piece]; ++t_pce_num){
             sq120 = pos->pList[t_piece][t_pce_num];
             ASSERT(pos->pieces[sq120] == t_piece);
         }
@@ -116,7 +116,7 @@ void UpdateListsMaterial(S_BOARD *pos){
                 SETBIT(pos->pawns[WHITE], SQ64(sq));
                 SETBIT(pos->pawns[BOTH], SQ64(sq));
             }
-            if(piece == bP){
+            else if(piece == bP){
                 SETBIT(pos->pawns[BLACK], SQ64(sq));
                 SETBIT(pos->pawns[BOTH], SQ64(sq));
             }
@@ -192,7 +192,6 @@ int ParseFen(char *fen, S_BOARD *pos){
         }
 
         fen++; //move to next character in FEN
-
     }//END OF WHILE
 
     //check active side

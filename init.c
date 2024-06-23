@@ -1,5 +1,5 @@
 #include "defs.h"
-#include "stdlib.h"
+#include <stdlib.h>
 
 //function will initialize values when the engine starts running
 int Sq120ToSq64[BRD_SQ_NUM]; 
@@ -22,7 +22,6 @@ void InitFilesRanksBrd(){
     int file = FILE_A;
     int rank = RANK_1;
     int sq = A1;
-    int sq64 = 0;
 
     for(i = 0; i<BRD_SQ_NUM; i++){
         FilesBrd[i] = OFFBOARD;
@@ -64,7 +63,7 @@ void InitBitMasks(){
     for(index = 0; index < 64; index++){
         SetMask[index] |= (1ULL << index);
         //clearmask values to complement of setmask
-        ClearMask[index] |= ~SetMask[index];
+        ClearMask[index] = ~SetMask[index];
     }
 }
 //initialize full-board representation

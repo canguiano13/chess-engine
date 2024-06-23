@@ -22,11 +22,11 @@ int PceDir[13][8] = {
     {-1, -10, 1, 10, -9, -11, 11, 9},   //wQ
     {-1, -10, 1, 10, -9, -11, 11, 9},   //wK
     {0, 0, 0, 0, 0, 0, 0},              //bP
-    {-8, -19, -21, -12, 8, 19, 21, 12}, //wN
-    {-9, -11, 11, 9, 0, 0, 0, 0},       //wB
-    {-1, -10, 1, 10, 0, 0, 0, 0},       //wR
-    {-1, -10, 1, 10, -9, -11, 11, 9},   //wQ
-    {-1, -10, 1, 10, -9, -11, 11, 9}, 
+    {-8, -19, -21, -12, 8, 19, 21, 12}, //bN
+    {-9, -11, 11, 9, 0, 0, 0, 0},       //bB
+    {-1, -10, 1, 10, 0, 0, 0, 0},       //bR
+    {-1, -10, 1, 10, -9, -11, 11, 9},   //bQ
+    {-1, -10, 1, 10, -9, -11, 11, 9},   //bK
 };
 
 //quiet moves are moves that do not involve captures, so no material is gained
@@ -44,7 +44,7 @@ static void AddCaptureMove(const S_BOARD *pos, int move, S_MOVELIST *list){
 }
 
 //EnPassant moves are captures only ave
-static void AddEnPassant(const S_BOARD *pos, int move, S_MOVELIST *list){
+static void AddEnPassantMove(const S_BOARD *pos, int move, S_MOVELIST *list){
     list->moves[list->count].move = move;
     list->moves[list->count].score = 0;
     list->count++; //move list pointer
@@ -54,13 +54,14 @@ static void AddWhitePawnCaptureMove(const S_BOARD *pos, const int from, const in
     ASSERT(PieceValidEmpty(cap));
     ASSERT(SqOnBoard(from));
     ASSERT(SqOnBoard(to));
+    CheckBoard(pos);
 
     if(RanksBrd[from] == RANK_7){
         //add all possible promotions
         AddCaptureMove(pos, MOVE(from, to, cap, wQ, 0), list);
         AddCaptureMove(pos, MOVE(from, to, cap, wR, 0), list);
-        AddCaptureMove(pos, MOVE(from, to, cap, wN, 0), list);
         AddCaptureMove(pos, MOVE(from, to, cap, wB, 0), list);
+        AddCaptureMove(pos, MOVE(from, to, cap, wN, 0), list);
     }
     else{
         AddCaptureMove(pos, MOVE(from, to, cap, EMPTY, 0), list);
@@ -72,13 +73,13 @@ static void AddWhitePawnMove(const S_BOARD *pos, const int from, const int to, S
 
     if(RanksBrd[from] == RANK_7){
         //add all possible promotions
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, wQ, 0), list);
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, wR, 0), list);
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, wN, 0), list);
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, wB, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, wQ, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, wR, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, wN, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, wB, 0), list);
     }
     else{
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, EMPTY, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, EMPTY, 0), list);
     }
 }
 
@@ -86,6 +87,7 @@ static void AddBlackPawnCaptureMove(const S_BOARD *pos, const int from, const in
     ASSERT(PieceValid(cap));
     ASSERT(SqOnBoard(from));
     ASSERT(SqOnBoard(to));
+    ASSERT(CheckBoard(pos));
 
     if(RanksBrd[from] == RANK_2){
         //add all possible promotions
@@ -104,13 +106,13 @@ static void AddBlackPawnMove(const S_BOARD *pos, const int from, const int to, S
 
     if(RanksBrd[from] == RANK_2){
         //add all possible promotions
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, bQ, 0), list);
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, bR, 0), list);
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, bN, 0), list);
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, bB, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, bQ, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, bR, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, bN, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, bB, 0), list);
     }
     else{
-        AddCaptureMove(pos, MOVE(from, to, EMPTY, EMPTY, 0), list);
+        AddQuietMove(pos, MOVE(from, to, EMPTY, EMPTY, 0), list);
     }
 }
 
@@ -128,6 +130,7 @@ void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list){
     int pceIndex = 0;
 
     if(side == WHITE){
+        //add pawn moves
         for(pceNum = 0; pceNum < pos->pceNum[wP]; pceNum++){
             sq = pos->pList[wP][pceNum]; //get square of each white pawn on the board
             ASSERT(SqOnBoard(sq));  //validate square is on the board
@@ -150,10 +153,10 @@ void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list){
             if(pos->enPassant != NO_SQ){
                 //generate en passant moves for white
                 if(sq+9 == pos->enPassant){
-                    AddCaptureMove(pos, MOVE(sq, sq+9, EMPTY, EMPTY, MFLAGEP), list);
+                    AddEnPassantMove(pos, MOVE(sq, sq+9, EMPTY, EMPTY, MFLAGEP), list);
                 }
                 if(sq+11 == pos->enPassant){
-                    AddCaptureMove(pos, MOVE(sq, sq+11, EMPTY, EMPTY, MFLAGEP), list);
+                    AddEnPassantMove(pos, MOVE(sq, sq+11, EMPTY, EMPTY, MFLAGEP), list);
                 }
             }
         }
@@ -199,10 +202,10 @@ void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list){
             if(pos->enPassant != NO_SQ){
                 //generate en passant moves for black
                 if(sq-9 == pos->enPassant){
-                    AddCaptureMove(pos, MOVE(sq, sq-9, EMPTY, EMPTY, MFLAGEP), list);
+                    AddEnPassantMove(pos, MOVE(sq, sq-9, EMPTY, EMPTY, MFLAGEP), list);
                 }
                 if(sq-11 == pos->enPassant){
-                    AddCaptureMove(pos, MOVE(sq, sq-11, EMPTY, EMPTY, MFLAGEP), list);
+                    AddEnPassantMove(pos, MOVE(sq, sq-11, EMPTY, EMPTY, MFLAGEP), list);
                 }
             }
         }
@@ -226,7 +229,7 @@ void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list){
     //loop for sliding pieces (wB, wR, wQ / bB, bR, bQ)
     pceIndex = LoopSlideIndex[side];
     pce = LoopSlidePce[pceIndex++];
-    while(pce !=0 ){
+    while(pce != 0){
         ASSERT(PieceValid(pce));
 
         for(pceNum = 0; pceNum < pos->pceNum[pce]; pceNum++){
@@ -274,7 +277,7 @@ void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list){
 
                 //capture
                 if(pos->pieces[t_sq] != EMPTY){
-                    if(PieceCol[pos->pieces[t_sq]] == side ^ 1){
+                    if(PieceCol[pos->pieces[t_sq]] == (side ^ 1)){
                         AddCaptureMove(pos, MOVE(sq, t_sq, pos->pieces[t_sq], EMPTY, 0), list);
                     }
                     continue;

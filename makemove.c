@@ -1,7 +1,7 @@
 #include "defs.h"
 
 #define HASH_PCE(pce, sq) (pos->posKey ^= (PieceKeys[(pce)][(sq)]))
-#define HASH_CA (pos->posKey ^= CastleKeys[(pos->castlePerm)])
+#define HASH_CA (pos->posKey ^= (CastleKeys[(pos->castlePerm)]))
 #define HASH_SIDE (pos->posKey ^= SideKey)
 #define HASH_EP (pos->posKey ^= (PieceKeys[EMPTY][(pos->enPassant)]))
 
@@ -14,9 +14,9 @@ const int CastlePerm[120] = {
     15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
     15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
     15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-    15, 15, 15, 15, 15, 3, 15, 15, 11, 15,
     15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-    15, 7, 15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+    15,  7, 15, 15, 15,  3, 15, 15, 11, 15,
     15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
     15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
 };
@@ -32,7 +32,10 @@ static void ClearPiece(const int sq, S_BOARD *pos){
     int col = PieceCol[pce];
     int index = 0;
     int t_pceNum = -1;
-    
+
+    //validate active side
+    ASSERT(SideValid(col));
+
     //hash piece from position key
     HASH_PCE(pce, sq);
 
@@ -55,7 +58,7 @@ static void ClearPiece(const int sq, S_BOARD *pos){
         CLRBIT(pos->pawns[BOTH], SQ64(sq));
     }
 
-    //remove piece from piec elist
+    //remove piece from piece list
     for(index = 0; index < pos->pceNum[pce]; index++){
         if(pos->pList[pce][index] == sq){
             t_pceNum = index;
@@ -65,6 +68,7 @@ static void ClearPiece(const int sq, S_BOARD *pos){
 
     //validate that square was found in pList
     ASSERT(t_pceNum != -1);
+    ASSERT(t_pceNum >= 0 && t_pceNum < 10);
 
     pos->pceNum[pce]--;
     pos->pList[pce][t_pceNum] = pos->pList[pce][pos->pceNum[pce]];
@@ -77,6 +81,8 @@ static void AddPiece(const int sq, S_BOARD *pos, const int pce){
 
     //store color of piece being added
     int col = PieceCol[pce];
+    //validate active side
+    ASSERT(SideValid(col));
 
     //hash pce into key
     HASH_PCE(pce, sq);
@@ -115,16 +121,18 @@ static void MovePiece(const int from, const int to, S_BOARD *pos){
     int pce = pos->pieces[from];
     int col = PieceCol[pce];
 
-    #ifdef DEBUG
+#ifdef DEBUG
         int t_PieceNum = FALSE;
-    #endif
+#endif
 
     //hash piece's current sq out of position key
     HASH_PCE(pce, from);
     //remove pce from board representation
     pos->pieces[from] = EMPTY;
+
     //hash piece's new sq into postion key
     HASH_PCE(pce, to);
+    pos->pieces[to] = pce;
 
     if(!PieceBig[pce]){
         //clear pawn from preivous bitboard position
@@ -139,14 +147,12 @@ static void MovePiece(const int from, const int to, S_BOARD *pos){
     for(index = 0; index < pos->pceNum[pce]; index++){
         if(pos->pList[pce][index] == from){
             pos->pList[pce][index] = to;
-        }
-        #ifdef DEBUG
-        t_PieceNum = TRUE;
-        #endif
-
+#ifdef DEBUG
+    t_PieceNum = TRUE;
+#endif
         break;
-    }
-
+        }
+    } 
     ASSERT(t_PieceNum);
 }
 
@@ -174,7 +180,7 @@ int MakeMove(S_BOARD *pos, int move){
             ClearPiece(to-10, pos);
         }
         else{
-            ClearPiece(to-10, pos);
+            ClearPiece(to+10, pos);
         }
     }
     //check for castle
@@ -328,7 +334,7 @@ void TakeMove(S_BOARD *pos){
             case C1: MovePiece(D1, A1, pos); break;
             case C8: MovePiece(D8, A8, pos); break;
             case G1: MovePiece(F1, H1, pos); break;
-            case G8: MovePiece(F8, A8, pos); break;
+            case G8: MovePiece(F8, H8, pos); break;
             default: ASSERT(FALSE); break;
         }
     }
