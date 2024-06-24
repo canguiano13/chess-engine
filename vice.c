@@ -15,7 +15,7 @@
 
 
 //Temporary FEN positions to demonstrate methods
-#define PERFT_TEST "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+#define PERFT_TEST "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1"
 
 int main(){
     //initialzes game with starting values
@@ -23,8 +23,14 @@ int main(){
     
     S_BOARD board[1];
     S_MOVELIST list[1];
-
+    
     ParseFen(PERFT_TEST, board);
-    PerftTest(6, board);
+    PrintBoard(board);
+    for(int depth = 1; depth <= 6; depth++){
+        PerftTest(depth, board);
+        printf("\n\n");
+    }
+
+    
     return 0;
 }

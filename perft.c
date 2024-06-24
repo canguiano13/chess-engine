@@ -1,7 +1,7 @@
 #include "defs.h"
 #include <stdio.h>
 
-long long leafNodes;
+long leafNodes;
 
 void Perft(int depth, S_BOARD *pos){
     ASSERT(CheckBoard(pos));
@@ -15,7 +15,7 @@ void Perft(int depth, S_BOARD *pos){
     S_MOVELIST list[1];
     GenerateAllMoves(pos, list);
 
-    long MoveNum = 0;
+    int MoveNum = 0;
     for(MoveNum = 0; MoveNum < list->count; MoveNum++){
         //if move cannot be made, move to next move in list
         if( !MakeMove(pos, list->moves[MoveNum].move)){
@@ -32,7 +32,7 @@ void Perft(int depth, S_BOARD *pos){
 void PerftTest(int depth, S_BOARD *pos){
     ASSERT(CheckBoard(pos));
 
-    PrintBoard(pos);
+    //PrintBoard(pos);
 
     printf("\nStarting Perft Test to Depth: %d...\n", depth);
 
@@ -43,7 +43,7 @@ void PerftTest(int depth, S_BOARD *pos){
     GenerateAllMoves(pos, list);
 
     int move;
-    long MoveNum = 0;
+    int MoveNum = 0;
     for(MoveNum = 0; MoveNum < list->count; MoveNum++){
         move = list->moves[MoveNum].move;
         
@@ -51,10 +51,10 @@ void PerftTest(int depth, S_BOARD *pos){
             continue;
         }
 
-        long long cumulative = leafNodes;
+        long cumulative = leafNodes;
         Perft(depth-1, pos);
         TakeMove(pos);
-        long long oldNodes = leafNodes-cumulative;
+        long oldNodes = leafNodes-cumulative;
         printf("Move %d : %s : %1d\n", MoveNum+1, PrMove(move), oldNodes);
     }
     printf("\nTEST COMPLETE: %1d nodes visited.\n", leafNodes);
