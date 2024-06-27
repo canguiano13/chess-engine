@@ -1,0 +1,29 @@
+alpha beta search used to evaluate moves follows this general outline:
+
+
+int search(depth){
+    int curr = 1;
+    iterativeDeepen(curr){
+        alphabeta(curr);
+        curr++;
+    }
+}
+
+int alphabeta (depth){
+    IsRepeated() ? return 0;
+    IsInterrupt() ? setQuit(); return 0;
+
+    GenerateMoves()
+    ProvePvMove() (need hash table)
+    if(have PVMove) OrderPVMove();
+
+    LoopMoves(){
+        Make()
+        alphabeta(depth-1);
+        TakeBack()
+
+        isBetaCut() ? return beta
+        isAlpha() ? note bestNove, increase alpha
+    }
+
+}

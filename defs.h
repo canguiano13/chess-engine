@@ -29,6 +29,7 @@ typedef unsigned long long U64;
 #define BRD_SQ_NUM 120
 #define MAX_GAME_MOVES 2048 //defines the max number of moves (in ply) that will be considered for a game
 #define MAX_POS_MOVES 256 //maximum possible number of available moves in any single position
+#define MAX_SEARCH_DEPTH 64
 
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -62,11 +63,19 @@ typedef struct{
     int move;  //stores information about actual move
     int score; //helps move search tree
 } S_MOVE;
-
 typedef struct{
     S_MOVE moves[MAX_POS_MOVES];
     int count;
 } S_MOVELIST;
+//structure for hash table
+typedef struct{
+    U64 posKey;
+    int move;
+} S_PVENTRY;
+typedef struct{
+    S_PVENTRY *pTable;
+    int numEntries;
+} S_PVTABLE;
 
 //store history of game properties
 typedef struct {
@@ -112,6 +121,11 @@ typedef struct {
     //pList[wN][1] = F1 adds a second, separate knight to F1
     int pList[13][10];
 
+    //principal variation table
+    S_PVTABLE PvTable[1];
+    //table will ideally hold the best line (variation)
+    int PvArray[MAX_SEARCH_DEPTH];
+
 } S_BOARD;
 
 /* GAME MOVE */
@@ -135,6 +149,8 @@ typedef struct {
 #define MFLAGCA 0x1000000
 #define MFLAGCAP 0x7c000
 #define MFLAGPROM 0xF00000
+
+#define NOMOVE 0
 
 /* MACROS */
 //use to determine full-board index from file and rank
@@ -232,6 +248,7 @@ extern int SqAttacked(const int sq, const int side, const S_BOARD *pos);
 //io.c
 extern char *PrSq(const int sq);
 extern char *PrMove(const int move);
+extern int ParseMove(char *ptrChar, S_BOARD *pos);
 extern void PrintMoveList(const S_MOVELIST *list);
 
 //validate.c
@@ -247,9 +264,21 @@ extern void TakeMove(S_BOARD *pos);
 
 //movegen.c
 extern void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list);
+extern int MoveExists(S_BOARD *pos, const int move);
 
 //perft.c
 extern void PerftTest(int depth, S_BOARD *pos);
 
+//search.c
+extern void SearchPosition(S_BOARD *pos);
+
+//misc.c
+extern int GetTimeMs();
+
+//pvtable.c
+extern void InitPvTable(S_PVTABLE *table);
+//extern void ClearPvTable(S_PVTABLE *table);
+extern void StorePvMove(const S_BOARD *pos, const int move);
+extern int ProbePvTable(const S_BOARD *pos);
 
 #endif

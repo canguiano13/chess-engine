@@ -29,6 +29,25 @@ int PceDir[13][8] = {
     {-1, -10, 1, 10, -9, -11, 11, 9},   //bK
 };
 
+//check if a specific move exists in the given position
+int MoveExists(S_BOARD *pos, const int move){
+    //generate all moves possible in the position
+    S_MOVELIST list[1];
+    GenerateAllMoves(pos, list);
+
+    int MoveNum = 0;
+    for(MoveNum = 0; MoveNum < list->count; MoveNum++){
+        if(!MakeMove(pos, list->moves[MoveNum].move)){
+            continue;
+        }
+        TakeMove(pos);
+        if(list->moves[MoveNum].move == move){
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 //quiet moves are moves that do not involve captures, so no material is gained
 static void AddQuietMove(const S_BOARD *pos, int move, S_MOVELIST *list){
     list->moves[list->count].move = move;
