@@ -126,7 +126,29 @@ typedef struct {
     //table will ideally hold the best line (variation)
     int PvArray[MAX_SEARCH_DEPTH];
 
+    //heuristic used when alpha score is improved upon during search to identify piece squares that contribute to better alpha scores
+    int searchHistory[13][BRD_SQ_NUM];
+    //store most recent non-capture moves used for beta cutoff
+    int searchKillers[2][MAX_SEARCH_DEPTH];
 } S_BOARD;
+
+
+typedef struct{
+    int startTime;
+    int stoptTime;
+    int timeSet;    //overall time limit for search
+
+    int depth;      //current search depth
+    int depthSet;   //overall search depth limit
+
+    int quit;       //boolean which interrupts program
+    int stopped;    //boolean which halts search, but not program
+
+    int movesToGo; //moves left to search
+    int infinite;
+
+    long nodes;     //count of all positions searched in search tree
+} S_SEARCHINFO;
 
 /* GAME MOVE */
 /*
@@ -224,16 +246,13 @@ extern int PieceBishopQueen[13];
 extern int PieceSlides[13];
 
 /* FUNCTIONS */
-//init.c
-extern void AllInit();
+//attack.c
+extern int SqAttacked(const int sq, const int side, const S_BOARD *pos);
 
 //bitboards.c
 extern int PopBit(U64 *bb);
 extern int CountBits(U64 b);
 extern void PrintBitBoard(U64 bb);
-
-//hashkeys.c
-extern U64 GeneratePosKey(const S_BOARD *pos);
 
 //board.c
 extern void ResetBoard(S_BOARD *pos);
@@ -242,8 +261,14 @@ extern void PrintBoard(S_BOARD *pos);
 extern void UpdateListsMaterial(S_BOARD *pos);
 extern int CheckBoard(const S_BOARD *pos);
 
-//attack.c
-extern int SqAttacked(const int sq, const int side, const S_BOARD *pos);
+//evaluate.c
+int EvalPosition(const S_BOARD *pos);
+
+//hashkeys.c
+extern U64 GeneratePosKey(const S_BOARD *pos);
+
+//init.c
+extern void AllInit();
 
 //io.c
 extern char *PrSq(const int sq);
@@ -251,16 +276,12 @@ extern char *PrMove(const int move);
 extern int ParseMove(char *ptrChar, S_BOARD *pos);
 extern void PrintMoveList(const S_MOVELIST *list);
 
-//validate.c
-extern int SqOnBoard(const int sq);
-extern int SideValid(const int side);
-extern int FileRankValid(const int fr);
-extern int PieceValid(const int pce);
-extern int PieceValidEmpty(const int pce);
-
 //makemove.c
 extern int MakeMove(S_BOARD *pos, int move);
 extern void TakeMove(S_BOARD *pos);
+
+//misc.c
+extern int GetTimeMs();
 
 //movegen.c
 extern void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list);
@@ -269,16 +290,19 @@ extern int MoveExists(S_BOARD *pos, const int move);
 //perft.c
 extern void PerftTest(int depth, S_BOARD *pos);
 
-//search.c
-extern void SearchPosition(S_BOARD *pos);
-
-//misc.c
-extern int GetTimeMs();
-
 //pvtable.c
 extern void InitPvTable(S_PVTABLE *table);
-//extern void ClearPvTable(S_PVTABLE *table);
 extern void StorePvMove(const S_BOARD *pos, const int move);
 extern int ProbePvTable(const S_BOARD *pos);
+
+//search.c
+extern void SearchPosition(S_BOARD *pos, S_SEARCHINFO *info);
+
+//validate.c
+extern int SqOnBoard(const int sq);
+extern int SideValid(const int side);
+extern int FileRankValid(const int fr);
+extern int PieceValid(const int pce);
+extern int PieceValidEmpty(const int pce);
 
 #endif

@@ -5,6 +5,7 @@
 #include "board.c"
 #include "data.c"
 #include "defs.h"
+#include "evaluate.c"
 #include "hashkeys.c"
 #include "init.c"
 #include "io.c"
