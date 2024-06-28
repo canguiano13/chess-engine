@@ -197,6 +197,9 @@ typedef struct{
 #define IsKN(p) (PieceKnight[(p)])
 #define IsKI(p) (PieceKing[(p)])
 
+//retrieves corresponding square on black side for a given board square (eg. c3->c6, a8->a1)
+#define MIRROR64(sq) (Mirror64[(sq)])
+
 //fill 64 bits with random numbers (for position key)
 #define RAND_64 (       (U64) rand() | \
                         (U64) rand() << 15 | \
@@ -245,6 +248,8 @@ extern int PieceRookQueen[13];
 extern int PieceBishopQueen[13];
 extern int PieceSlides[13];
 
+//mirrors 64-sq based index for black
+extern int Mirror64[64];
 /* FUNCTIONS */
 //attack.c
 extern int SqAttacked(const int sq, const int side, const S_BOARD *pos);
