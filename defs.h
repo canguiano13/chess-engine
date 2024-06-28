@@ -174,6 +174,9 @@ typedef struct{
 
 #define NOMOVE 0
 
+#define INFINITE 30000
+#define ISMATE (INFINITE - MAX_SEARCH_DEPTH)
+
 /* MACROS */
 //use to determine full-board index from file and rank
 //e.g. A1 = (A, 1) -> 21
