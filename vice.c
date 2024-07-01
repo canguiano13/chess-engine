@@ -18,13 +18,14 @@
 #include "validate.c"
 
 //Temporary FEN positions to demonstrate methods
-#define SEARCH_TEST "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - -"
+#define SEARCH_TEST "r1b1k2r/ppppnppp/2n2q2/2b5/3NP3/2P1B3/PP3PPP/RN1QKB1R w KQkq - 0 1"
 
 int main(){
     //initialzes game with starting values
     AllInit();
     
     S_BOARD board[1];
+    InitPvTable(board->PvTable);
     S_MOVELIST list[1];
     S_SEARCHINFO info[1];
     ParseFen(SEARCH_TEST, board);
@@ -45,7 +46,7 @@ int main(){
             TakeMove(board);
         }
         else if (input[0] == 's'){
-            info->depth = 4;
+            info->depth = 6;
             SearchPosition(board, info);
         }
         else{
@@ -61,6 +62,6 @@ int main(){
 
         fflush(stdin);
     }
-    
+    free(board->PvTable->pTable);
     return 0;
 }

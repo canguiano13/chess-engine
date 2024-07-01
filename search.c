@@ -9,6 +9,23 @@ static void CheckUp(){
     return;
 }
 
+static void PickNextMove(int moveNum, S_MOVELIST *list){
+    S_MOVE temp;
+    int index = 0;
+    int bestScore = 0;
+    int bestNum = moveNum;
+    //order moves based on scoring in order to optimize search order
+    for(index = moveNum; index < list->count; index++){
+        if(list->moves[index].score > bestScore){
+            bestScore = list->moves[index].score;
+            bestNum = index;
+        }
+    }
+    temp = list->moves[moveNum];
+    list->moves[moveNum] = list->moves[bestNum];
+    list->moves[bestNum] = temp;
+}
+
 //detect repetition of position
 static int IsRepetition(const S_BOARD *pos){
     int index;
@@ -82,7 +99,21 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
     int BestMove = NOMOVE;
     int Score = -INFINITY;
 
+    //probe the pv table to check if we are in the principal variation
+    int PvMove = ProbePvTable(pos);
+    //if so, prioritize the move leading to the principal variation in the move search
+    if(PvMove != NOMOVE){
+        for(MoveNum = 0; MoveNum < list->count; MoveNum++){
+            if(list->moves[MoveNum].move == PvMove){
+                list->moves[MoveNum].score = 2000000;
+                break;
+            }
+        }
+    }
+    
     for(MoveNum = 0; MoveNum < list->count; MoveNum++){
+        //reorder moves for search based on mvv-lva scores
+        PickNextMove(MoveNum, list);
         //if move cannot be made, continue to next move in list
         if( !MakeMove(pos, list->moves[MoveNum].move)){
             continue;
@@ -98,11 +129,20 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
                 //check if first fail high case
                 if(Legal == 1) info->fhf++;
                 info-> fh++;
+                //check for search killer
+                //search killers are quiet moves that cause a beta cutoff
+                if(!(list->moves[MoveNum].move & MFLAGCAP)){
+                    pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
+                    pos->searchKillers[0][pos->ply] = list->moves[MoveNum].move;
+                }
                 return beta;
             }
             //else better alpha score was found
             alpha = Score;
             BestMove = list->moves[MoveNum].move;
+            if(!(list->moves[MoveNum].move & MFLAGCAP)){
+                pos->searchHistory[pos->pieces[FROMSQ(BestMove)]][pos->pieces[TOSQ(BestMove)]] += depth;
+            }
         }
     }
 

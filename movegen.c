@@ -42,12 +42,6 @@ void InitMvvLva(){
             MvvLvaScores[victim][attacker] = VictimScore[victim]+6 - (VictimScore[attacker]/100);
         }
     }
-
-    for(victim = wP; victim <= bK; victim++){
-        for(attacker = wP; attacker <= bK; attacker++){
-            printf("%c x %c = %d\n", PceChar[attacker], PceChar[victim], MvvLvaScores[victim][attacker]);
-        }
-    }
 }
 
 //check if a specific move exists in the given position
@@ -71,22 +65,40 @@ int MoveExists(S_BOARD *pos, const int move){
 
 //quiet moves are moves that do not involve captures, so no material is gained
 static void AddQuietMove(const S_BOARD *pos, int move, S_MOVELIST *list){
+    //validate start and destination squares of move
+    ASSERT(SqOnBoard(FROMSQ(move)));
+    ASSERT(SQOnBoard(TOSQ(move)));
+    
     list->moves[list->count].move = move;
-    list->moves[list->count].score = 0;
+    //score move after checking whether or not it is a move killer
+    if(pos->searchKillers[0][pos->ply] == move){
+        list->moves[list->count].score = 900000;
+    }
+    else if(pos->searchKillers[1][pos->ply] == move){
+        list->moves[list->count].score = 800000;
+    }
+    //or based on score from move search
+    else{
+        list->moves[list->count].score = pos->searchHistory[pos->pieces[FROMSQ(move)]][pos->pieces[TOSQ(move)]];
+    }
     list->count++; //move list pointer
 }
 
 //captures allow the side to gain material
 static void AddCaptureMove(const S_BOARD *pos, int move, S_MOVELIST *list){
+    //validate start and destination squares of move
+    ASSERT(SqOnBoard(FROMSQ(move)));
+    ASSERT(SQOnBoard(TOSQ(move)));
+    ASSERT(PieceValid(CAPTURED(move)));
     list->moves[list->count].move = move;
-    list->moves[list->count].score = MvvLvaScores[CAPTURED(move)][pos->pieces[FROMSQ(move)]];
+    list->moves[list->count].score = MvvLvaScores[CAPTURED(move)][pos->pieces[FROMSQ(move)]] + 1000000;
     list->count++; //move list pointer
 }
 
 //EnPassant moves are captures only ave
 static void AddEnPassantMove(const S_BOARD *pos, int move, S_MOVELIST *list){
     list->moves[list->count].move = move;
-    list->moves[list->count].score = 105;
+    list->moves[list->count].score = 105 + 1000000;
     list->count++; //move list pointer
 }
 
@@ -191,7 +203,7 @@ void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list){
                 AddWhitePawnCaptureMove(pos, sq, sq+11, pos->pieces[sq+11], list);
             }
             if(pos->enPassant != NO_SQ){
-                //generate en passant moves for white
+                //generate en passant moves for white, if any exist
                 if(sq+9 == pos->enPassant){
                     AddEnPassantMove(pos, MOVE(sq, sq+9, EMPTY, EMPTY, MFLAGEP), list);
                 }
