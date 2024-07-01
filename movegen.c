@@ -29,6 +29,27 @@ int PceDir[13][8] = {
     {-1, -10, 1, 10, -9, -11, 11, 9},   //bK
 };
 
+//Most Valuable Victim - Least Valuable Attacker scores
+const int VictimScore[13] = {0, 100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600};
+static int MvvLvaScores[13][13];
+
+void InitMvvLva(){
+    int attacker;
+    int victim;
+    //establish MvvLva Scores
+    for(attacker = wP; attacker <= bK; attacker++){
+        for(victim = wP; victim <= bK; victim++){
+            MvvLvaScores[victim][attacker] = VictimScore[victim]+6 - (VictimScore[attacker]/100);
+        }
+    }
+
+    for(victim = wP; victim <= bK; victim++){
+        for(attacker = wP; attacker <= bK; attacker++){
+            printf("%c x %c = %d\n", PceChar[attacker], PceChar[victim], MvvLvaScores[victim][attacker]);
+        }
+    }
+}
+
 //check if a specific move exists in the given position
 int MoveExists(S_BOARD *pos, const int move){
     //generate all moves possible in the position
@@ -58,14 +79,14 @@ static void AddQuietMove(const S_BOARD *pos, int move, S_MOVELIST *list){
 //captures allow the side to gain material
 static void AddCaptureMove(const S_BOARD *pos, int move, S_MOVELIST *list){
     list->moves[list->count].move = move;
-    list->moves[list->count].score = 0;
+    list->moves[list->count].score = MvvLvaScores[CAPTURED(move)][pos->pieces[FROMSQ(move)]];
     list->count++; //move list pointer
 }
 
 //EnPassant moves are captures only ave
 static void AddEnPassantMove(const S_BOARD *pos, int move, S_MOVELIST *list){
     list->moves[list->count].move = move;
-    list->moves[list->count].score = 0;
+    list->moves[list->count].score = 105;
     list->count++; //move list pointer
 }
 

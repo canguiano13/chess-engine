@@ -5,7 +5,7 @@
 #include "stdlib.h"
 #include <stdio.h>
 
-#define DEBUG
+//#define DEBUG
 
 //debug macro
 #ifndef DEBUG
@@ -295,6 +295,7 @@ extern int GetTimeMs();
 //movegen.c
 extern void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list);
 extern int MoveExists(S_BOARD *pos, const int move);
+extern void InitMvvLva();
 
 //perft.c
 extern void PerftTest(int depth, S_BOARD *pos);
