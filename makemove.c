@@ -77,7 +77,7 @@ static void ClearPiece(const int sq, S_BOARD *pos){
 static void AddPiece(const int sq, S_BOARD *pos, const int pce){
     //validate piece and square
     ASSERT(PieceValid(pce));
-    ASSERT(SqOnBoard(pce));
+    ASSERT(SqOnBoard(sq));
 
     //store color of piece being added
     int col = PieceCol[pce];

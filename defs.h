@@ -5,7 +5,7 @@
 #include "stdlib.h"
 #include <stdio.h>
 
-//#define DEBUG
+#define DEBUG
 
 //debug macro
 #ifndef DEBUG
@@ -132,7 +132,6 @@ typedef struct {
     int searchKillers[2][MAX_SEARCH_DEPTH];
 } S_BOARD;
 
-
 typedef struct{
     int startTime;
     int stoptTime;
@@ -144,10 +143,14 @@ typedef struct{
     int quit;       //boolean which interrupts program
     int stopped;    //boolean which halts search, but not program
 
-    int movesToGo; //moves left to search
+    int movesToGo;  //moves left to search
     int infinite;
 
     long nodes;     //count of all positions searched in search tree
+
+    //flags help to improve move ordering
+    float fh;       //fail high 
+    float fhf;      //fail high first
 } S_SEARCHINFO;
 
 /* GAME MOVE */
@@ -169,13 +172,11 @@ typedef struct{
 #define MFLAGEP 0x40000
 #define MFLAGPS 0x80000
 #define MFLAGCA 0x1000000
-#define MFLAGCAP 0x7c000
+#define MFLAGCAP 0x7C000
 #define MFLAGPROM 0xF00000
 
 #define NOMOVE 0
 
-#define INFINITE 30000
-#define ISMATE (INFINITE - MAX_SEARCH_DEPTH)
 
 /* MACROS */
 //use to determine full-board index from file and rank
@@ -312,5 +313,6 @@ extern int SideValid(const int side);
 extern int FileRankValid(const int fr);
 extern int PieceValid(const int pce);
 extern int PieceValidEmpty(const int pce);
+extern int PieceValidEmptyOffboard(const int pce);
 
 #endif

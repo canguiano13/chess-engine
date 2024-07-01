@@ -22,3 +22,7 @@ int PieceValidEmpty(const int pce){
     return (pce >= EMPTY && pce <= bK) ? 1:0;
 }
 
+int PieceValidEmptyOffboard(const int pce){
+    return (pce >= EMPTY  && pce <= OFFBOARD) ? 1:0;
+}
+

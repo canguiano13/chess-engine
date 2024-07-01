@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "defs.h"
-#include <windows.h>
 
 #ifdef _WIN64
 #include <windows.h>

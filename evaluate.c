@@ -21,7 +21,7 @@ const int KnightTable[64] = {
 -10,-10, 0,  0,  0,  0,-10,-10,
 10,  10, 0,  5,  5,  0, 10, 10,
  0,  0, 10, 10, 10, 10,  0,  0,
- 0,  5, 10, 20, 20, 10,  5,  0,
+ 0,  0, 10, 20, 20, 10,  0,  0,
  5, 10, 15, 20, 20, 15, 10,  5, 
  5, 10, 15, 20, 20, 15, 10,  5, 
  0,  0,  5, 10, 10,  5,  0,  0,
@@ -65,13 +65,13 @@ int EvalPosition(const S_BOARD *pos){
 
     //evaluate pawns
     pce = wP;
-    for(pceNum = wP; pceNum <  pos->pceNum[pce]; pceNum++){
+    for(pceNum = 0; pceNum < pos->pceNum[pce]; pceNum++){
         sq = pos->pList[pce][pceNum];
         ASSERT(SqOnBoard(sq));
         score += PawnTable[SQ64(sq)];
     }
     pce = bP;
-    for(pceNum = bP; pceNum < pos->pceNum[pce]; pceNum++){
+    for(pceNum = 0; pceNum < pos->pceNum[pce]; pceNum++){
         sq = pos->pList[pce][pceNum];
         ASSERT(SqOnBoard(sq));
         score -= PawnTable[MIRROR64( SQ64(sq) )];
@@ -79,13 +79,13 @@ int EvalPosition(const S_BOARD *pos){
 
     //evaluate knights
     pce = wN;
-    for(pceNum = wN; pceNum <  pos->pceNum[pce]; pceNum++){
+    for(pceNum = 0; pceNum <  pos->pceNum[pce]; pceNum++){
         sq = pos->pList[pce][pceNum];
         ASSERT(SqOnBoard(sq));
         score += KnightTable[SQ64(sq)];
     }
     pce = bN;
-    for(pceNum = bN; pceNum < pos->pceNum[pce]; pceNum++){
+    for(pceNum = 0; pceNum < pos->pceNum[pce]; pceNum++){
         sq = pos->pList[pce][pceNum];
         ASSERT(SqOnBoard(sq));
         score -= KnightTable[MIRROR64( SQ64(sq) )];
@@ -93,13 +93,13 @@ int EvalPosition(const S_BOARD *pos){
 
     //evaluate bishops
     pce = wB;
-    for(pceNum = wB; pceNum <  pos->pceNum[pce]; pceNum++){
+    for(pceNum = 0; pceNum <  pos->pceNum[pce]; pceNum++){
         sq = pos->pList[pce][pceNum];
         ASSERT(SqOnBoard(sq));
         score += BishopTable[SQ64(sq)];
     }
     pce = bB;
-    for(pceNum = bB; pceNum < pos->pceNum[pce]; pceNum++){
+    for(pceNum = 0; pceNum < pos->pceNum[pce]; pceNum++){
         sq = pos->pList[pce][pceNum];
         ASSERT(SqOnBoard(sq));
         score -= BishopTable[MIRROR64( SQ64(sq) )];
@@ -107,13 +107,13 @@ int EvalPosition(const S_BOARD *pos){
 
     //evaluate rooks
     pce = wR;
-    for(pceNum = wR; pceNum <  pos->pceNum[pce]; pceNum++){
+    for(pceNum = 0; pceNum <  pos->pceNum[pce]; pceNum++){
         sq = pos->pList[pce][pceNum];
         ASSERT(SqOnBoard(sq));
         score += RookTable[SQ64(sq)];
     }
     pce = bR;
-    for(pceNum = bR; pceNum < pos->pceNum[pce]; pceNum++){
+    for(pceNum = 0; pceNum < pos->pceNum[pce]; pceNum++){
         sq = pos->pList[pce][pceNum];
         ASSERT(SqOnBoard(sq));
         score -= RookTable[MIRROR64( SQ64(sq) )];

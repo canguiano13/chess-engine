@@ -68,9 +68,9 @@ int ParseMove(char *ptrChar, S_BOARD *pos){
             //check that current move matches in promotion value
             PromPce = PROMOTED(Move);
             if(PromPce != EMPTY){
-                if(IsRQ(PromPce) && !IsBQ(PromPce) && ptrChar[4] == 'r' ||
-                  !IsRQ(PromPce) && IsBQ(PromPce) && ptrChar[4] == 'b'  ||
-                   IsRQ(PromPce) && IsBQ(PromPce) && ptrChar[4] == 'q'  ||
+                if(IsRQ(PromPce) &&!IsBQ(PromPce) && ptrChar[4] == 'r' ||
+                  !IsRQ(PromPce) && IsBQ(PromPce) && ptrChar[4] == 'b' ||
+                   IsRQ(PromPce) && IsBQ(PromPce) && ptrChar[4] == 'q' ||
                    IsKN(PromPce) && ptrChar[4] == 'k'){
                     return Move;
                 }
