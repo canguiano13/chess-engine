@@ -9,6 +9,7 @@ static void CheckUp(){
     return;
 }
 
+//reorder candidate moves 
 static void PickNextMove(int moveNum, S_MOVELIST *list){
     S_MOVE temp;
     int index = 0;
@@ -67,6 +68,75 @@ static void ClearForSearch(S_BOARD *pos, S_SEARCHINFO *info){
     info->fhf = 0;
 }
 
+//quiescent search helps alleviate horizon effect
+static int Quiescence(int alpha, int beta, S_BOARD *pos, S_SEARCHINFO *info){
+    //validate board position
+    ASSERT(CheckBoard(pos));
+    //add to number of nodes visited
+    info->nodes++;
+    //check for draw
+    if(IsRepetition(pos) || pos->fiftyMove >= 100){
+        return 0;
+    }
+    //check if maximum search depth has been surpassed
+    if(pos->ply > MAX_SEARCH_DEPTH-1){
+        return EvalPosition(pos);
+    }
+
+    //evaluate position resulting after completing alpha-beta search
+    int Score = EvalPosition(pos);
+
+    ASSERT(Score > -INFINITY && Score < INFINITY);
+
+    //check for beta cutoff
+    if(Score >= beta){
+        return beta;
+    }
+    //check for standing pat
+    if(Score > alpha){
+        alpha = Score;
+    }
+
+    S_MOVELIST list[1];
+    GenerateAllCaptures(pos, list);
+    int MoveNum = 0;
+    int Legal = 0;  //check for number of legal moves in order to detect checkmate/stalemate
+    int OldAlpha = alpha;
+    Score = -INFINITY;
+    int BestMove = NOMOVE;
+    //probe the pv table to check if we are in the principal variation
+    int PvMove = ProbePvTable(pos);
+
+    for(MoveNum = 0; MoveNum < list->count; MoveNum++){
+        PickNextMove(MoveNum, list);
+        if( !MakeMove(pos, list->moves[MoveNum].move) ){
+            continue;
+        }
+        Legal++;
+        Score = -Quiescence(-beta, -alpha,  pos, info);
+        TakeMove(pos);
+
+        if(Score > alpha){
+            //beta cutoff
+            if(Score >= beta){
+                //check if first fail high case
+                if(Legal == 1) info->fhf++;
+                info-> fh++;
+                return beta;
+            }
+            //else better alpha score was found
+            alpha = Score;
+            BestMove = list->moves[MoveNum].move;
+        }
+    }
+
+    if(alpha != OldAlpha){
+        StorePvMove(pos, BestMove);
+    }
+    
+    return alpha;
+}
+
 //perform iteration of alpha-beta search
 static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO *info, int DoNull){
     //validate current position
@@ -74,8 +144,7 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
 
     //if there are no more moves to evaluate, return evaluation of the position and update the number of visted nodes
     if(depth == 0){
-        info->nodes++;
-        return EvalPosition(pos);
+        return Quiescence(alpha, beta, pos, info);
     }
     info->nodes++;
 
@@ -110,7 +179,7 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
             }
         }
     }
-    
+
     for(MoveNum = 0; MoveNum < list->count; MoveNum++){
         //reorder moves for search based on mvv-lva scores
         PickNextMove(MoveNum, list);
@@ -162,11 +231,6 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
     }
 
     return alpha;
-}
-
-//quiescent search helps alleviate horizon effect
-static int Quiescence(int alpha, int beta, S_BOARD *POS, S_SEARCHINFO *info){
-    return 0;
 }
 
 //perform iterative deepening alpha-beta search to find next move
