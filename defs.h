@@ -134,7 +134,7 @@ typedef struct {
 
 typedef struct{
     int startTime;
-    int stoptTime;
+    int stopTime;
     int timeSet;    //overall time limit for search
 
     int depth;      //current search depth
@@ -291,6 +291,7 @@ extern void TakeMove(S_BOARD *pos);
 
 //misc.c
 extern int GetTimeMs();
+extern void ReadInput(S_SEARCHINFO *info);
 
 //movegen.c
 extern void GenerateAllMoves(const S_BOARD *pos, S_MOVELIST *list);
@@ -308,6 +309,9 @@ extern int ProbePvTable(const S_BOARD *pos);
 
 //search.c
 extern void SearchPosition(S_BOARD *pos, S_SEARCHINFO *info);
+
+//uci.c
+extern void UCI_Loop();
 
 //validate.c
 extern int SqOnBoard(const int sq);

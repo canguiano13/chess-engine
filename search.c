@@ -5,8 +5,11 @@
 #define MATE 29000
 
 //check for timer end or interrupt
-static void CheckUp(){
-    return;
+static void CheckUp(S_SEARCHINFO *info){
+    if(info->timeSet == TRUE && GetTimeMs()>info->stopTime){
+        info->stopped = TRUE;
+    }
+    ReadInput(info);
 }
 
 //reorder candidate moves 
@@ -61,7 +64,6 @@ static void ClearForSearch(S_BOARD *pos, S_SEARCHINFO *info){
     pos->ply = 0; //clear current search ply
 
     //clear search info
-    info->startTime = GetTimeMs();
     info->stopped = 0;
     info->nodes = 0;
     info->fh = 0;
@@ -72,6 +74,10 @@ static void ClearForSearch(S_BOARD *pos, S_SEARCHINFO *info){
 static int Quiescence(int alpha, int beta, S_BOARD *pos, S_SEARCHINFO *info){
     //validate board position
     ASSERT(CheckBoard(pos));
+    //check time limit
+    if((info->nodes & 2047) == 0){
+        CheckUp(info);
+    }
     //add to number of nodes visited
     info->nodes++;
     //check for draw
@@ -116,6 +122,9 @@ static int Quiescence(int alpha, int beta, S_BOARD *pos, S_SEARCHINFO *info){
         Score = -Quiescence(-beta, -alpha,  pos, info);
         TakeMove(pos);
 
+        if(info->stopped == TRUE){
+                    return 0;
+        }
         if(Score > alpha){
             //beta cutoff
             if(Score >= beta){
@@ -133,7 +142,7 @@ static int Quiescence(int alpha, int beta, S_BOARD *pos, S_SEARCHINFO *info){
     if(alpha != OldAlpha){
         StorePvMove(pos, BestMove);
     }
-    
+
     return alpha;
 }
 
@@ -145,6 +154,10 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
     //if there are no more moves to evaluate, return evaluation of the position and update the number of visted nodes
     if(depth == 0){
         return Quiescence(alpha, beta, pos, info);
+    }
+    //check time limit
+    if((info->nodes & 2047) == 0){
+        CheckUp(info);
     }
     info->nodes++;
 
@@ -191,6 +204,10 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
         //call algorithm with next depth assuming the current move was played
         Score = -AlphaBeta(-beta, -alpha, depth-1, pos, info, TRUE);
         TakeMove(pos);
+
+        if(info->stopped == TRUE){
+            return 0;
+        }
 
         if(Score > alpha){
             //beta cutoff
@@ -247,21 +264,24 @@ void SearchPosition(S_BOARD *pos, S_SEARCHINFO *info){
         //perform alpha-beta search on current depth with params (alpha, beta, depth, pos, info, doNull)
         bestScore = AlphaBeta(-INFINITY, INFINITY, currDepth, pos, info, TRUE);
 
-        //TODO: add timer check
+        //exit search once limit is reached
+        if(info->stopped == TRUE){
+            break;
+        }
 
         //store best variation and best next move
         pvMoves = GetPvLine(currDepth, pos);
         bestMove = pos->PvArray[0];
-        //print move data to screen
-        printf("\nDepth: %d\t score: %d\t move: %s\t nodes: %ld ", currDepth, bestScore, PrMove(bestMove), info->nodes);
+        //UCI protocol for sending info
+        printf("info score cp %d depth %d nodes %ld time %d ", bestScore, currDepth, info->nodes, (GetTimeMs()-info->startTime));
         pvMoves = GetPvLine(currDepth, pos);
-        printf("pv ");
+        printf("pv");
 
         for(pvNum = 0; pvNum < pvMoves; pvNum++){
             printf(" %s", PrMove(pos->PvArray[pvNum]));
         }
         printf("\n");
-        if(info->fh > 0)
-            printf("Ordering: %.2f\n", (info->fhf/info->fh));
+        //printf("Ordering: %.2f\n", (info->fhf/info->fh));
     }
+    printf("bestmove %s\n", PrMove(bestMove));
 }
