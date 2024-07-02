@@ -30,12 +30,12 @@ int main(){
     S_SEARCHINFO info[1];
     InitPvTable(pos->PvTable);
 
-    printf("\nWelcome to VICE! Type \"vice\" to enter console mode...\n");
+    printf("\nWelcome to VICE! \nType \"vice\" to enter console mode, or \"uci\" or \"xboard\" for corresponding protocols.\n");
+    printf(" > ");
 
     char line[256];
     while(TRUE){
         memset(&line[0], 0, sizeof(line));
-        
         fflush(stdout);
         if(!fgets(line, 256, stdin)){
             continue;

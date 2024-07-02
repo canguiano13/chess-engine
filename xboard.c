@@ -205,8 +205,7 @@ void XBoard_Loop(S_BOARD *pos, S_SEARCHINFO *info){
 void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
     printf("\n***********************************************");
     printf("\nWelcome to VICE in Console Mode!\n");
-    printf("Type \"help\" for commands.\n");
-    printf("or begin the game by playing a move:\n");
+    printf("Type \"help\" for commands or begin the game by playing a move.\n");
     
     info->GAME_MODE = CONSOLEMODE;
     info->POST_THINKING = TRUE;
@@ -234,11 +233,11 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
                 info->timeSet = TRUE;
                 info->stopTime = info->startTime + moveTime;
             }
-
+            printf("VICE is thinking...\n");
             SearchPosition(pos, info);
         }
-
-        printf("\nVICE > ");
+        printf("\nEnter command or next move:\n");
+        printf("VICE > ");
 
         fflush(stdout);
 
@@ -248,24 +247,31 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             continue;
         }
         sscanf(inBuf, "%s", command);
-
-        //show commands
+        
+        //perform action based on command
         if(!strcmp(command, "help")){
+            printf("\n***********************************************\n");
             printf("Commands:\n");
+            printf("\"quit\"     - quit game and exit VICE:\n");
+            printf("\"take\"     - take back your move\n");
             printf("\"black\"    - play a new game as black\n");
             printf("\"white\"    - play a new game as white\n");
             printf("\"new\"      - start new game with the same color pieces\n");
+            printf("\"eval\"     - print VICE's evaluation of the current position\n");
+            printf("\"set F\"    - set the board to a custom position F, where F is a FEN. Both sides keep the same color.");
             printf("\"force\"    - computer will not think\n");
             printf("\"go\"       - set computer thinking\n");
             printf("\"nopost\"   - do not show thinking\n");
             printf("\"post\"     - show thinking\n");
             printf("\"print\"    - show board:\n");
-            printf("\"quit\"     - quit game:\n");
+            printf("\"mirror\"   - print a mirrored version of the current board and its evaluation\n");
             printf("\"depth x\"  - set thinking depth to x:\n");
             printf("\"time x\"   - set thinking time to x seconds. depth will apply if set\n");
             printf("\"view\"   - show current depth and movetime settings\n");
+           
             printf("\nNOTE: to reset time and depth, set to 0\n");
-            printf("\n**ENTER MOVES USING ALGEBRAIC NOTATION (e.g. b7b8q)**\n\nHave Fun!\n\n");
+            printf("\n**ENTER MOVES USING ALGEBRAIC NOTATION (e.g. b7b8q)**\n\nHave Fun!\n");
+            printf("\n***********************************************\n");
             continue;
         }
         if(!strcmp(command, "quit")){
@@ -274,13 +280,67 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             info->quit = TRUE;
             break;
         }
+        if(!strcmp(command, "take")){
+            printf("Taking back your move...\n");
+            //take back computer's move
+            TakeMove(pos);
+            //take back player's move
+            TakeMove(pos);
+            PrintBoard(pos);
+            continue;
+        }
+        if(!strcmp(command, "black")){
+            printf("Starting new game as black...\n");
+            ClearPvTable(pos->PvTable);
+            engineSide=WHITE;
+            ParseFen(START_FEN, pos);
+            continue;
+        }
+        if(!strcmp(command, "white")){
+            printf("Starting new game as white...\n");
+            printf("Game started. Enter a move to begin.\n");
+            ClearPvTable(pos->PvTable);
+            engineSide=BLACK;
+            ParseFen(START_FEN, pos);
+            continue;
+        }
+        if(!strcmp(command, "new")){
+            printf("Restarting game...\n");
+            ClearPvTable(pos->PvTable);
+            engineSide=pos->side^1;
+            if(engineSide == BLACK){
+                printf("Game Restarted. Enter a move to begin.\n");
+            }
+            ParseFen(START_FEN, pos);
+            continue;
+        }
+        if(!strcmp(command, "eval")){
+            printf("VICE evaluates the position with score: %d\n", EvalPosition(pos));
+        }
+        if(!strcmp(command, "set")){
+            ParseFen(inBuf+4, pos);
+            printf("\nSetting custom position...");
+            printf("\nBoard is now:");
+            PrintBoard(pos);
+            continue;
+        }
+        if(!strcmp(command, "force")){
+            printf("Computer will stop thinking. Enter \"go\" to resume thinking.\n");
+            engineSide = BOTH;
+            continue;
+        }
+        if(!strcmp(command, "go")){
+            printf("Resuming computer's thinking...\n");
+            engineSide = pos->side;
+            continue;
+        }
         if(!strcmp(command, "post")){
-            printf("You entered: post\n");
+            printf("Computer's thoughts will now be posted.\n");
             info->POST_THINKING = TRUE;
             continue;
         }
         if(!strcmp(command, "nopost")){
-            printf("You entered: nopost\n");
+            printf("Computer's thoughts will NOT be posted.\n");
             info->POST_THINKING = FALSE;
             continue;
         }
@@ -289,9 +349,17 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             PrintBoard(pos);
             continue;
         }
-        if(!strcmp(command, "force")){
-            printf("You entered: force\n");
-            engineSide = BOTH;
+        if(!strcmp(command, "mirror")){
+            printf("Board is currently:\n");
+            PrintBoard(pos);
+            printf("Mirroring board...\n");
+            MirrorBoard(pos);
+            printf("Mirroring complete. Board is now:");
+            PrintBoard(pos);
+            printf("\nVICE scores the mirrored board as: %d\n", EvalPosition(pos));
+            printf("\nReturning to regular board...");
+            MirrorBoard(pos);
+            PrintBoard(pos);
             continue;
         }
         if(!strcmp(command, "view")){
@@ -315,38 +383,11 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             moveTime *= 1000;
             continue;
         }
-        if(!strcmp(command, "new")){
-            printf("Restarting...\n");
-            ClearPvTable(pos->PvTable);
-            engineSide=pos->side^1;
-            if(engineSide == BLACK){
-                printf("Game Restarted. Enter a move to begin:\n");
-            }
-            ParseFen(START_FEN, pos);
-            continue;
-        }
-        if(!strcmp(command, "black")){
-            printf("Starting new game as black...\n");
-            ClearPvTable(pos->PvTable);
-            engineSide=WHITE;
-            ParseFen(START_FEN, pos);
-            continue;
-        }
-        if(!strcmp(command, "white")){
-            printf("Starting new game as white...\n");
-            printf("Game started. Enter a move to begin:\n");
-            ClearPvTable(pos->PvTable);
-            engineSide=BLACK;
-            ParseFen(START_FEN, pos);
-            continue;
-        }
-        if(!strcmp(command, "go")){
-            engineSide = pos->side;
-            continue;
-        }
+
+        //if no command was made, make a move or respond with error message
         move = ParseMove(inBuf, pos);
         if(move == NOMOVE){
-            printf("Command unknown: %s\n", inBuf);
+            printf("Command unknown or ilegal move: %s\n", inBuf);
             continue;
         }
         MakeMove(pos, move);

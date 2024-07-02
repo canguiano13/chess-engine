@@ -237,6 +237,50 @@ int ParseFen(char *fen, S_BOARD *pos){
     return 0;
 }
 
+void MirrorBoard(S_BOARD *pos){
+    int tempPiecesArray[64];
+    int tempSide=pos->side^1;
+    int SwapPiece[13] = {EMPTY, bP, bN, bB, bR, bQ, bK, wP, wN, wB, wR, wQ, wK};
+    int tempCastlePerm = 0;
+    int tempEnPassant = NO_SQ;
+
+    int sq;
+    int tp;
+
+    //mirror castling permissions
+    if(pos->castlePerm & WKCA) tempCastlePerm |= BKCA;
+    if(pos->castlePerm & WQCA) tempCastlePerm |= BQCA;
+    if(pos->castlePerm & BKCA) tempCastlePerm |= WKCA;
+    if(pos->castlePerm & BQCA) tempCastlePerm |= WQCA;
+
+    //mirror en passant square
+    if(pos->enPassant != NO_SQ){
+        tempEnPassant = SQ120(MIRROR64(SQ64(pos->enPassant)));
+    }
+
+    //mirror pieces
+    for(sq = 0; sq < 64; sq++){
+        tempPiecesArray[sq] = pos->pieces[SQ120(MIRROR64(sq))];
+    }
+
+    ResetBoard(pos);
+
+    for(sq = 0; sq < 64; sq++){
+        tp = SwapPiece[tempPiecesArray[sq]];
+        pos->pieces[SQ120(sq)] = tp;
+    }
+
+    pos->side = tempSide;
+    pos->castlePerm = tempCastlePerm;
+    pos->enPassant = tempEnPassant;
+
+    pos->posKey = GeneratePosKey(pos);
+
+    UpdateListsMaterial(pos);
+
+    ASSERT(CheckBoard(pos));
+}
+
 //reset all pieces on board
 void ResetBoard(S_BOARD *pos){
     int index = 0;
@@ -282,7 +326,7 @@ void PrintBoard(S_BOARD *pos){
     int sq, rank, piece;
     int file = FILE_A;
 
-    printf("\nGAME BOARD:\n\n");
+    printf("\n\nGAME BOARD:\n");
 
     for(rank=RANK_8; rank>=RANK_1; rank--){
         printf("%d  ", rank+1); //add 1 to rank since they are zero-indexed
@@ -300,12 +344,12 @@ void PrintBoard(S_BOARD *pos){
     }
 
     printf("\n");
-    printf("side: %c\n", SideChar[pos->side]);
-    printf("enPas: %d\n", pos->enPassant);
-    printf("castle:%c%c%c%c\n", 
-        pos->castlePerm & WKCA ?'K':'-',
-        pos->castlePerm & WQCA ?'Q':'-',
-        pos->castlePerm & BKCA ?'k':'-',
-        pos->castlePerm & BQCA ?'q':'-');
-    printf("PosKey: %11X\n", pos->posKey);
+    // printf("side: %c\n", SideChar[pos->side]);
+    // printf("enPas: %d\n", pos->enPassant);
+    // printf("castle:%c%c%c%c\n", 
+    //     pos->castlePerm & WKCA ?'K':'-',
+    //     pos->castlePerm & WQCA ?'Q':'-',
+    //     pos->castlePerm & BKCA ?'k':'-',
+    //     pos->castlePerm & BQCA ?'q':'-');
+    // printf("PosKey: %11X\n", pos->posKey);
 }

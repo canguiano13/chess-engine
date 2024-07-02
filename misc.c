@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "defs.h"
 #include <windows.h>
 
@@ -54,21 +55,21 @@ int InputWaiting(){
 }
 
 void ReadInput(S_SEARCHINFO *info){
-    int bytes;
-    char input[256] = "", *endc;
+    // int bytes;
+    // char input[256] = "", *endc;
 
-    if(InputWaiting()){
-        info->stopped = TRUE;
-        do{
-            bytes = read(fileno(stdin), input, 256);
-        }while(bytes < 0);
-        endc = strchr(input, '\n');
-        if(endc) *endc=0;
-        if(strlen(input) > 0){
-            if(!strncmp(input, "quit", 4)){
-                info->quit = TRUE;
-            }
-        }
-        return;
-    }
+    // if(InputWaiting()){
+    //     info->stopped = TRUE;
+    //     do{
+    //         bytes = read(fileno(stdin), input, 256);
+    //     }while(bytes < 0);
+    //     endc = strchr(input, '\n');
+    //     if(endc) *endc=0;
+    //     if(strlen(input) > 0){
+    //         if(!strncmp(input, "quit", 4)){
+    //             info->quit = TRUE;
+    //         }
+    //     }
+    //     return;
+    // }
 }

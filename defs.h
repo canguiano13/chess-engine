@@ -250,6 +250,13 @@ extern int PieceCol[13];
 extern int FilesBrd[BRD_SQ_NUM];
 extern int RanksBrd[BRD_SQ_NUM];
 
+//bit masks for detecting passed and isolani pawns
+extern U64 FileBBMask[8];
+extern U64 RankBBMask[8];
+extern U64 BlackPassedMask[64];
+extern U64 WhitePassedMask[64];
+extern U64 IsolatedMask[64];
+
 //returns true for the corresponing piece, and false otherwise
 extern int PiecePawn[13];
 extern int PieceKnight[13];
@@ -260,6 +267,7 @@ extern int PieceSlides[13];
 
 //mirrors 64-sq based index for black
 extern int Mirror64[64];
+
 /* FUNCTIONS */
 //attack.c
 extern int SqAttacked(const int sq, const int side, const S_BOARD *pos);
