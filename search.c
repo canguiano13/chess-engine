@@ -81,7 +81,7 @@ static int Quiescence(int alpha, int beta, S_BOARD *pos, S_SEARCHINFO *info){
     //add to number of nodes visited
     info->nodes++;
     //check for draw
-    if(IsRepetition(pos) || pos->fiftyMove >= 100){
+    if((IsRepetition(pos) || pos->fiftyMove >= 100) && pos->ply){
         return 0;
     }
     //check if maximum search depth has been surpassed
@@ -171,6 +171,9 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
         return EvalPosition(pos);
     }
 
+    //if king is in check extend search depth by 1
+    int InCheck = SqAttacked(pos->KingSQ[pos->side], pos->side^1, pos);
+    if (InCheck == TRUE) depth++;
     //create move list and generate all moves for current position
     S_MOVELIST list[1];
     GenerateAllMoves(pos, list);
@@ -234,7 +237,7 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
 
     //check for stalemate/checkmate
     if(Legal == 0){
-        if(SqAttacked(pos->KingSQ[pos->side], pos->side^1, pos)){
+        if(InCheck){
             return -MATE + pos->ply;
         }
         //else position is a draw

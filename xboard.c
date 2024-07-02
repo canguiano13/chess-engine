@@ -67,6 +67,10 @@ int CheckResult(S_BOARD *pos){
     return FALSE;
 }
 
+void PrintOptions(){
+    printf("feature ping=1 setboard=1 colors=0 usermove=1\n");
+    printf("feature done=1\n");
+}
 void XBoard_Loop(S_BOARD *pos, S_SEARCHINFO *info){
     //set xboard protocol
     info->GAME_MODE = XBOARDMODE;
@@ -74,6 +78,7 @@ void XBoard_Loop(S_BOARD *pos, S_SEARCHINFO *info){
 
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
+    PrintOptions();
 
     int depth = -1, movestogo[2] = {30, 30}, movetime = -1;
     int time = -1, inc = 0;
@@ -132,8 +137,7 @@ void XBoard_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             continue;
         }
         if(!strcmp(command, "protover")){
-            printf("feature ping=1 setboard=1 colors=0 usermove=1\n");
-            printf("feature done=1\n");
+            PrintOptions();
             continue;
         }
         if(!strcmp(command, "sd")){
@@ -254,8 +258,8 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             printf("\"nopost\" - do not show thinking\n");
             printf("\"new\"    - start new game\n");
             printf("\"go\"     - set computer thinking\n");
-            printf("\"depth\"  - set depth to x:\n");
-            printf("\"time\"   - set thinking time to x seconds. depth will apply if set\n");
+            printf("\"depth x\"  - set depth to x:\n");
+            printf("\"time x\"   - set thinking time to x seconds. depth will apply if set\n");
             printf("\"view\"   - show current depth and movetime settings\n");
             printf("\nNOTE: to reset time and depth, set to 0\n");
             printf("\n**ENTER MOVES USING ALGEBRAIC NOTATION (e.g. b7b8q)**\n\nHave Fun!\n\n");
