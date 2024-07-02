@@ -206,7 +206,8 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
     printf("\n***********************************************");
     printf("\nWelcome to VICE in Console Mode!\n");
     printf("Type \"help\" for commands.\n");
-
+    printf("or begin the game by playing a move:\n");
+    
     info->GAME_MODE = CONSOLEMODE;
     info->POST_THINKING = TRUE;
 
@@ -251,14 +252,16 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
         //show commands
         if(!strcmp(command, "help")){
             printf("Commands:\n");
-            printf("\"quit\"   - quit game:\n");
-            printf("\"force\"  - computer will not think\n");
-            printf("\"print\"  - show board:\n");
-            printf("\"post\"   - show thinking\n");
-            printf("\"nopost\" - do not show thinking\n");
-            printf("\"new\"    - start new game\n");
-            printf("\"go\"     - set computer thinking\n");
-            printf("\"depth x\"  - set depth to x:\n");
+            printf("\"black\"    - play a new game as black\n");
+            printf("\"white\"    - play a new game as white\n");
+            printf("\"new\"      - start new game with the same color pieces\n");
+            printf("\"force\"    - computer will not think\n");
+            printf("\"go\"       - set computer thinking\n");
+            printf("\"nopost\"   - do not show thinking\n");
+            printf("\"post\"     - show thinking\n");
+            printf("\"print\"    - show board:\n");
+            printf("\"quit\"     - quit game:\n");
+            printf("\"depth x\"  - set thinking depth to x:\n");
             printf("\"time x\"   - set thinking time to x seconds. depth will apply if set\n");
             printf("\"view\"   - show current depth and movetime settings\n");
             printf("\nNOTE: to reset time and depth, set to 0\n");
@@ -315,6 +318,24 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
         if(!strcmp(command, "new")){
             printf("Restarting...\n");
             ClearPvTable(pos->PvTable);
+            engineSide=pos->side^1;
+            if(engineSide == BLACK){
+                printf("Game Restarted. Enter a move to begin:\n");
+            }
+            ParseFen(START_FEN, pos);
+            continue;
+        }
+        if(!strcmp(command, "black")){
+            printf("Starting new game as black...\n");
+            ClearPvTable(pos->PvTable);
+            engineSide=WHITE;
+            ParseFen(START_FEN, pos);
+            continue;
+        }
+        if(!strcmp(command, "white")){
+            printf("Starting new game as white...\n");
+            printf("Game started. Enter a move to begin:\n");
+            ClearPvTable(pos->PvTable);
             engineSide=BLACK;
             ParseFen(START_FEN, pos);
             continue;
@@ -332,3 +353,7 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
         pos->ply = 0;
     }
 }
+
+
+
+
