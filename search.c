@@ -272,16 +272,41 @@ void SearchPosition(S_BOARD *pos, S_SEARCHINFO *info){
         //store best variation and best next move
         pvMoves = GetPvLine(currDepth, pos);
         bestMove = pos->PvArray[0];
-        //UCI protocol for sending info
-        printf("info score cp %d depth %d nodes %ld time %d ", bestScore, currDepth, info->nodes, (GetTimeMs()-info->startTime));
-        pvMoves = GetPvLine(currDepth, pos);
-        printf("pv");
-
-        for(pvNum = 0; pvNum < pvMoves; pvNum++){
-            printf(" %s", PrMove(pos->PvArray[pvNum]));
+        if(info->GAME_MODE == UCIMODE){
+            printf("info score cp %d depth %d node %ld time %d", bestScore, bestScore, currDepth, info->nodes, GetTimeMs()-info->startTime);
         }
-        printf("\n");
-        //printf("Ordering: %.2f\n", (info->fhf/info->fh));
+        //XBOARD protocol
+        else if(info->GAME_MODE == XBOARDMODE && info->POST_THINKING == TRUE){
+            printf("%d %d %d %d", currDepth, bestScore, info->nodes, (GetTimeMs()-info->startTime)/10);
+        }
+        //console mode
+        else if(info->POST_THINKING == TRUE){
+            printf("score:%d depth:%d nodes:%ld time:%d(ms) ", bestScore, currDepth, info->nodes, (GetTimeMs()-info->startTime));
+        }
+        //UCI protocol
+        if(info->GAME_MODE == UCIMODE || info->POST_THINKING == TRUE){
+            pvMoves = GetPvLine(currDepth, pos);
+            if(!info->GAME_MODE == XBOARDMODE){
+                printf("pv");
+            }
+            for(pvNum = 0; pvNum < pvMoves; pvNum++){
+                printf(" %s", PrMove(pos->PvArray[pvNum]));
+            }
+            printf("\n");
+        }
     }
-    printf("bestmove %s\n", PrMove(bestMove));
+
+    //make move according to protocol
+    if(info->GAME_MODE == UCIMODE){
+        printf("bestmove %s\n", PrMove(bestMove));
+    }
+    else if(info->GAME_MODE == XBOARDMODE){
+        printf("move %s\n", PrMove(bestMove));
+        MakeMove(pos, bestMove);
+    }
+    else{
+        printf("\n\n***!! Vice makes move: %s !!***\n\n", PrMove(bestMove));
+        MakeMove(pos, bestMove);
+        PrintBoard(pos);
+    }
 }

@@ -38,6 +38,8 @@ enum {EMPTY, wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK};
 //enumerate the ranks and files for the board
 enum {FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, FILE_NONE};
 enum {RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_NONE};
+//enumerate moe for xboard protocol
+enum {UCIMODE, XBOARDMODE, CONSOLEMODE};
 //enumerate the colors for each side
 enum {WHITE, BLACK, BOTH};
 //enumerate the squares of the board
@@ -151,6 +153,10 @@ typedef struct{
     //flags help to improve move ordering
     float fh;       //fail high 
     float fhf;      //fail high first
+
+    //use to establish protocol
+    int GAME_MODE;
+    int POST_THINKING;
 } S_SEARCHINFO;
 
 /* GAME MOVE */
@@ -311,7 +317,7 @@ extern int ProbePvTable(const S_BOARD *pos);
 extern void SearchPosition(S_BOARD *pos, S_SEARCHINFO *info);
 
 //uci.c
-extern void UCI_Loop();
+extern void UCI_Loop(S_BOARD *pos, S_SEARCHINFO *info);
 
 //validate.c
 extern int SqOnBoard(const int sq);
@@ -320,5 +326,9 @@ extern int FileRankValid(const int fr);
 extern int PieceValid(const int pce);
 extern int PieceValidEmpty(const int pce);
 extern int PieceValidEmptyOffboard(const int pce);
+
+//xboard.c
+extern void XBoard_Loop(S_BOARD *pos, S_SEARCHINFO *info);
+extern void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info); 
 
 #endif

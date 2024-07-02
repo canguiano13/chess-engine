@@ -1,1 +1,1 @@
-game 
+printf("Thanks for Playing!\n");
