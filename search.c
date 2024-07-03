@@ -152,7 +152,7 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
     ASSERT(CheckBoard(pos));
 
     //if there are no more moves to evaluate, return evaluation of the position and update the number of visted nodes
-    if(depth == 0){
+    if(depth <= 0){
         return Quiescence(alpha, beta, pos, info);
     }
     //check time limit
@@ -174,6 +174,22 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
     //if king is in check extend search depth by 1
     int InCheck = SqAttacked(pos->KingSQ[pos->side], pos->side^1, pos);
     if (InCheck == TRUE) depth++;
+
+    int Score = -INFINITY;
+
+    //perform null-move pruning so long as the active side is not in check or zugzwang
+    //zugzwang is much less likely with at least 1 (non-pawn) piece on the board, hence the bigPce > 0
+    //still, it's possible that there can be pieces on the board and be in zugzwang
+    
+        //TODO IMPLEMENT OPENING BOOK
+    if(DoNull && !InCheck && pos->ply && (pos->bigPce[pos->side] > 0) && depth >= 4){
+        MakeNullMove(pos);
+        Score = -AlphaBeta(-beta, -beta+1, depth-4, pos, info, FALSE);
+        TakeNullMove(pos);
+        if(info->stopped == TRUE) return 0;
+        if(Score >= beta && abs(Score) < MATE) return beta;
+    }
+
     //create move list and generate all moves for current position
     S_MOVELIST list[1];
     GenerateAllMoves(pos, list);
@@ -182,7 +198,7 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
     int Legal = 0;  //check for number of legal moves in order to detect checkmate/stalemate
     int OldAlpha = alpha; //in iterative deepening, checks if next depth found a better move than last iteration's alpha
     int BestMove = NOMOVE;
-    int Score = -INFINITY;
+    Score = -INFINITY;
 
     //probe the pv table to check if we are in the principal variation
     int PvMove = ProbePvTable(pos);

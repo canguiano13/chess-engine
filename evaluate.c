@@ -5,10 +5,12 @@
 const int PawnIsolated = -10;
 const int PawnPassed[8] = {0, 5, 10, 20, 35, 60, 100, 200};
 
+//positional evaluation markers
 const int RookOpenFile = 10;
 const int RookSemiOpenFile = 5;
 const int QueenOpenFile = 5;
 const int QueenSemiOpenFile = 3;
+const int BishopPair = 30;
 
 //holds specified values for pawns based on their current (64-indexed) square
 //current evaluation values pawns in the center and on the end ranks
@@ -64,15 +66,15 @@ const int RookTable[64] = {
 
 //holds specified values for the king in the endgame based on its current square
 //current evaluation values active kings towards the center of the board
-const int KingE[64] = {
--50,  0,  0,  0,  0,  0,-20,-50,
- 0,   0, 20, 20, 20, 20,  0,-20,
- 0,  20, 40, 40, 40, 40, 20,  0,
- 0,  20, 40, 50, 50, 40, 20,  0,
- 0,  20, 40, 50, 50, 40, 20,  0, 
- 0,  20, 40, 40, 40, 40, 20,  0,
--20,  0, 20, 20, 20, 20,  0, 25,
--50,-20,  0,  0,  0,  0,-20,-50
+const int KingE[64] = {	
+	-50, -10,  0,  0,  0,  0,-10,-50,
+	-10,   0, 10, 10, 10, 10,  0,-10,
+	  0 , 10, 20, 20, 20, 20, 10,  0,
+	  0,  10, 20, 40, 40, 20, 10,  0,
+	  0,  10, 20, 40, 40, 20, 10,  0,
+	  0,  10, 20, 20, 20, 20, 10,  0,
+	-10,   0, 10, 10, 10, 10,  0,-10,
+    -50, -10,  0,  0,  0,  0,-10,-50
 };
 
 //holds evaluation for kings in non-endgame situations
@@ -133,7 +135,7 @@ int EvalPosition(const S_BOARD *pos){
     int score = pos->material[WHITE] - pos->material[BLACK];
 
     //check for theoretical draws
-    if(MaterialDraw(pos) == TRUE){return 0;}
+    if((pos->pceNum[wP] == 0 && pos->pceNum[bP] == 0) && MaterialDraw(pos) == TRUE){return 0;}
 
     //evaluate pawns
     pce = wP;
@@ -256,8 +258,8 @@ int EvalPosition(const S_BOARD *pos){
     //evaluate kings
     pce = wK;
     sq = pos->pList[pce][0];
-    //if there is no black queen or less than endgame material threshold, evaluate king's position based on endgame scores
-    if(pos->pceNum[bQ] == 0 || (pos->material[BLACK] < ENDGAME_MAT)){
+    //if there is less than endgame material threshold, evaluate king's position based on endgame scores
+    if(pos->material[BLACK] < ENDGAME_MAT){
         score += KingE[SQ64(sq)];
     }
     else{
@@ -265,12 +267,16 @@ int EvalPosition(const S_BOARD *pos){
     }
     pce = bK;
     sq = pos->pList[pce][0];
-    if(pos->pceNum[wQ] == 0 || (pos->material[WHITE] < ENDGAME_MAT)){
+    if(pos->material[WHITE] < ENDGAME_MAT){
         score -= KingE[MIRROR64(SQ64(sq))];
     }
     else{
         score -= KingO[MIRROR64(SQ64(sq))];
     }
+
+    //check for bishop pair
+    if(pos->pceNum[wB] >= 2) score += BishopPair;
+    if(pos->pceNum[bB] >= 2) score -= BishopPair;
 
     //return static evaluation score from active side's perspective
     if(pos->side == WHITE){

@@ -156,6 +156,53 @@ static void MovePiece(const int from, const int to, S_BOARD *pos){
     ASSERT(t_PieceNum);
 }
 
+//use for null-move pruning
+void MakeNullMove(S_BOARD *pos){
+    ASSERT(CheckBoard(pos));
+    //validate not in check
+    ASSERT(!SqAttacked(pos->KingSQ[pos->side], pos->side^1, pos));
+
+    pos->ply++;
+    pos->history[pos->hisPly].posKey = pos->posKey;
+
+    if(pos->enPassant != NO_SQ) HASH_EP;
+
+    //store game characteristics in history
+    pos->history[pos->hisPly].move = NOMOVE;
+    pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
+    pos->history[pos->hisPly].enPassant = pos->enPassant;
+    pos->history[pos->hisPly].castlePerm = pos->castlePerm;
+    pos->enPassant = NO_SQ;
+
+    pos->side^=1;
+    pos->hisPly++;
+    HASH_SIDE;
+
+    //validate resulting position
+    ASSERT(CheckBoard(pos));
+    return;
+}
+void TakeNullMove(S_BOARD *pos){
+    ASSERT(CHeckBoard(pos));
+
+    pos->hisPly--;
+    pos->ply--;
+
+    if(pos->enPassant != NO_SQ) HASH_EP;
+
+    //retrieve game characteristics from history
+    pos->castlePerm = pos->history[pos->hisPly].castlePerm;
+    pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
+    pos->enPassant = pos->history[pos->hisPly].enPassant;
+
+    if(pos->enPassant != NO_SQ) HASH_EP;
+
+    pos->side ^=1;
+    HASH_SIDE;
+
+    ASSERT(CheckBoard(pos));
+}
+
 int MakeMove(S_BOARD *pos, int move){
     //validate current position
     ASSERT(CheckBoard(pos));
