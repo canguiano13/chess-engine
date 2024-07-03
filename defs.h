@@ -217,6 +217,9 @@ typedef struct{
                         (U64) rand() << 45 | \
                         ((U64) rand() & 0xf) << 60      ) //generates last 4/64 bits
 
+//material threshold separating middlegames and endgames
+#define ENDGAME_MAT (2*PieceVal[wR] + 4*PieceVal[wN] + 6*PieceVal[wP])
+
 /* GLOBALS */
 //variables accessed everywhere use extern keyword
 //these allow us to convert between full-board and 64-square indices

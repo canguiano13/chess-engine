@@ -316,6 +316,7 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
         }
         if(!strcmp(command, "eval")){
             printf("VICE evaluates the position with score: %d\n", EvalPosition(pos));
+            continue;
         }
         if(!strcmp(command, "set")){
             ParseFen(inBuf+4, pos);
@@ -350,7 +351,7 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             continue;
         }
         if(!strcmp(command, "mirror")){
-            printf("Board is currently:\n");
+            printf("Board is currently:");
             PrintBoard(pos);
             printf("Mirroring board...\n");
             MirrorBoard(pos);
