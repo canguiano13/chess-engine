@@ -28,7 +28,10 @@ int main(){
     AllInit();
     S_BOARD pos[1];
     S_SEARCHINFO info[1];
-    InitPvTable(pos->PvTable);
+    info->quit = FALSE;
+
+    pos->HashTable->pTable = NULL;
+    InitHashTable(pos->HashTable);
 
     printf("\nWelcome to VICE! \nType \"vice\" to enter console mode, or \"uci\" or \"xboard\" for corresponding protocols.\n");
     printf(" > ");
@@ -63,6 +66,6 @@ int main(){
             break;
         }
     }
-    free(pos->PvTable->pTable);
+    free(pos->HashTable->pTable);
     return 0;
 }

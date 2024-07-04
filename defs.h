@@ -2,10 +2,11 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include <stdio.h>
 
-//#define DEBUG
+//uncomment below to enter debug mode
+#define DEBUG
 
 //debug macro
 #ifndef DEBUG
@@ -25,13 +26,13 @@ exit(1);}
 typedef unsigned long long U64;
 
 //define the name and number of squares considered by the board
-#define NAME "Vice 1.0"
+#define NAME "VICE"
 #define BRD_SQ_NUM 120
 #define MAX_GAME_MOVES 2048 //defines the max number of moves (in ply) that will be considered for a game
 #define MAX_POS_MOVES 256 //maximum possible number of available moves in any single position
-#define MAX_SEARCH_DEPTH 64
+#define MAX_SEARCH_DEPTH 64 //define the maximum number of half-ply moves to search during turn
 
-#define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+#define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" //FEN notation for starting position
 
 //enumerate the names of the pieces
 enum {EMPTY, wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK};
@@ -43,7 +44,7 @@ enum {UCIMODE, XBOARDMODE, CONSOLEMODE};
 //enumerate the colors for each side
 enum {WHITE, BLACK, BOTH};
 //enumerate the squares of the board
-enum{
+enum {
     A1 = 21, B1, C1, D1, E1, F1, G1, H1,
     A2 = 31, B2, C2, D2, E2, F2, G2, H2,
     A3 = 41, B3, C3, D3, E3, F3, G3, H3,
@@ -51,14 +52,17 @@ enum{
     A5 = 61, B5, C5, D5, E5, F5, G5, H5,
     A6 = 71, B6, C6, D6, E6, F6, G6, H6,
     A7 = 81, B7, C7, D7, E7, F7, G7, H7,
-    A8 = 91, B8, C8, D8, E8, F8, G8, H8, NO_SQ, OFFBOARD //off-board square has value 99
+    A8 = 91, B8, C8, D8, E8, F8, G8, H8, NO_SQ, OFFBOARD //OFFBOARD = 99
 };
 //add true/false
-enum{FALSE, TRUE};
+enum {FALSE, TRUE};
 
 //castling permissions for kingside/queenside for each side
 //uses 4 bits which hold 1/0 for allowed/not allowed to castle to corresponding side
 enum {WKCA = 1, WQCA = 2, BKCA = 4, BQCA = 8};
+
+//hash table flags
+enum {HFNONE, HFALPHA, HFBETA, HFEXACT};
 
 //structure for individual game moves
 typedef struct{
@@ -69,15 +73,23 @@ typedef struct{
     S_MOVE moves[MAX_POS_MOVES];
     int count;
 } S_MOVELIST;
+
 //structure for hash table
 typedef struct{
     U64 posKey;
     int move;
-} S_PVENTRY;
+    int score;
+    int depth;
+    int flags;
+} S_HASHENTRY;
 typedef struct{
-    S_PVENTRY *pTable;
+    S_HASHENTRY *pTable;
     int numEntries;
-} S_PVTABLE;
+    int newWrite;
+    int overWrite;
+    int hit;
+    int cut;
+} S_HASHTABLE;
 
 //store history of game properties
 typedef struct {
@@ -124,7 +136,7 @@ typedef struct {
     int pList[13][10];
 
     //principal variation table
-    S_PVTABLE PvTable[1];
+    S_HASHTABLE HashTable[1];
     //table will ideally hold the best line (variation)
     int PvArray[MAX_SEARCH_DEPTH];
 
@@ -150,9 +162,10 @@ typedef struct{
 
     long nodes;     //count of all positions searched in search tree
 
-    //flags help to improve move ordering
+    //flags help to improve move search/ordering
     float fh;       //fail high 
     float fhf;      //fail high first
+    int nullCut;
 
     //use to establish protocol
     int GAME_MODE;
@@ -182,7 +195,8 @@ typedef struct{
 #define MFLAGPROM 0xF00000
 
 #define NOMOVE 0
-
+#define INFINITY 30000
+#define MATE 29000
 
 /* MACROS */
 //use to determine full-board index from file and rank
@@ -218,7 +232,7 @@ typedef struct{
                         ((U64) rand() & 0xf) << 60      ) //generates last 4/64 bits
 
 //material threshold separating middlegames and endgames
-#define ENDGAME_MAT (1*PieceVal[wR] + 2*PieceVal[wN] + 4*PieceVal[wP])
+#define ENDGAME_MAT (1*PieceVal[wR] + 2*PieceVal[wN] + 3*PieceVal[wP])
 
 /* GLOBALS */
 //variables accessed everywhere use extern keyword
@@ -286,6 +300,7 @@ extern int ParseFen(char *fen, S_BOARD *pos);
 extern void PrintBoard(S_BOARD *pos);
 extern void UpdateListsMaterial(S_BOARD *pos);
 extern int CheckBoard(const S_BOARD *pos);
+extern void MirrorBoard(S_BOARD *pos);
 
 //evaluate.c
 int EvalPosition(const S_BOARD *pos);
@@ -322,9 +337,12 @@ extern void InitMvvLva();
 extern void PerftTest(int depth, S_BOARD *pos);
 
 //pvtable.c
-extern void InitPvTable(S_PVTABLE *table);
-extern void StorePvMove(const S_BOARD *pos, const int move);
-extern int ProbePvTable(const S_BOARD *pos);
+extern int GetPvLine(const int depth, S_BOARD *pos);
+extern void ClearHashTable(S_HASHTABLE *table);
+extern void InitHashTable(S_HASHTABLE *table);
+extern int ProbeHashEntry(S_BOARD *pos, int *move, int *score, int alpha, int beta, int depth);
+extern void StoreHashEntry(S_BOARD *pos, const int move, int score, const int flags, const int depth);
+extern int ProbePvMove(const S_BOARD *pos);
 
 //search.c
 extern void SearchPosition(S_BOARD *pos, S_SEARCHINFO *info);

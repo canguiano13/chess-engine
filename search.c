@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include "defs.h"
 
-#define INFINITY 30000
-#define MATE 29000
-
 //check for timer end or interrupt
 static void CheckUp(S_SEARCHINFO *info){
     if(info->timeSet == TRUE && GetTimeMs()>info->stopTime){
@@ -60,8 +57,11 @@ static void ClearForSearch(S_BOARD *pos, S_SEARCHINFO *info){
     }
 
     //clear hash table data
-    ClearPvTable(pos->PvTable);
-    pos->ply = 0; //clear current search ply
+    ClearHashTable(pos->HashTable);
+    pos->ply = 0;
+    pos->HashTable->overWrite = 0;
+    pos->HashTable->hit = 0;
+    pos->HashTable->cut = 0;
 
     //clear search info
     info->stopped = 0;
@@ -110,8 +110,6 @@ static int Quiescence(int alpha, int beta, S_BOARD *pos, S_SEARCHINFO *info){
     int OldAlpha = alpha;
     Score = -INFINITY;
     int BestMove = NOMOVE;
-    //probe the pv table to check if we are in the principal variation
-    int PvMove = ProbePvTable(pos);
 
     for(MoveNum = 0; MoveNum < list->count; MoveNum++){
         PickNextMove(MoveNum, list);
@@ -139,9 +137,7 @@ static int Quiescence(int alpha, int beta, S_BOARD *pos, S_SEARCHINFO *info){
         }
     }
 
-    if(alpha != OldAlpha){
-        StorePvMove(pos, BestMove);
-    }
+    ASSERT(alpha >= OldAlpha);
 
     return alpha;
 }
@@ -176,7 +172,12 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
     if (InCheck == TRUE) depth++;
 
     int Score = -INFINITY;
-
+    //probe the hash table to check if we have transposed to a position seen before
+    int PvMove = NOMOVE;
+    if(ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth) == TRUE){
+        pos->HashTable->cut++;
+        return Score;
+    }
     //perform null-move pruning so long as the active side is not in check or zugzwang
     //zugzwang is much less likely with at least 1 (non-pawn) piece on the board, hence the bigPce > 0
     //still, it's possible that there can be pieces on the board and be in zugzwang
@@ -198,10 +199,9 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
     int Legal = 0;  //check for number of legal moves in order to detect checkmate/stalemate
     int OldAlpha = alpha; //in iterative deepening, checks if next depth found a better move than last iteration's alpha
     int BestMove = NOMOVE;
+    int BestScore = -INFINITY;
     Score = -INFINITY;
 
-    //probe the pv table to check if we are in the principal variation
-    int PvMove = ProbePvTable(pos);
     //if so, prioritize the move leading to the principal variation in the move search
     if(PvMove != NOMOVE){
         for(MoveNum = 0; MoveNum < list->count; MoveNum++){
@@ -228,19 +228,24 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
             return 0;
         }
 
-        if(Score > alpha){
-            //beta cutoff
-            if(Score >= beta){
-                //check if first fail high case
-                if(Legal == 1) info->fhf++;
-                info-> fh++;
-                //check for search killer
-                //search killers are quiet moves that cause a beta cutoff
-                if(!(list->moves[MoveNum].move & MFLAGCAP)){
-                    pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
-                    pos->searchKillers[0][pos->ply] = list->moves[MoveNum].move;
+        if(Score > BestScore){
+            BestScore = Score;
+            BestMove = list->moves[MoveNum].move;
+            if(Score > alpha){
+                //beta cutoff
+                if(Score >= beta){
+                    //check if first fail high case
+                    if(Legal == 1) info->fhf++;
+                    info-> fh++;
+                    //check for search killer
+                    //search killers are quiet moves that cause a beta cutoff
+                    if(!(list->moves[MoveNum].move & MFLAGCAP)){
+                        pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
+                        pos->searchKillers[0][pos->ply] = list->moves[MoveNum].move;
+                    }
+                    StoreHashEntry(pos, BestMove, beta, HFBETA, depth);
+                    return beta;
                 }
-                return beta;
             }
             //else better alpha score was found
             alpha = Score;
@@ -263,7 +268,10 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
     }
     //if a better move has been found than the last depth, store it
     if(alpha != OldAlpha){
-        StorePvMove(pos, BestMove);
+        StoreHashEntry(pos, BestMove, alpha, HFEXACT, depth);
+    }
+    else{
+        StoreHashEntry(pos, BestMove, alpha, HFALPHA, depth);
     }
 
     return alpha;

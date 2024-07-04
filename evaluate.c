@@ -2,10 +2,9 @@
 #include <stdio.h>
 #include "defs.h"
 
+//positional evaluation markers
 const int PawnIsolated = -10;
 const int PawnPassed[8] = {0, 5, 10, 20, 35, 60, 100, 200};
-
-//positional evaluation markers
 const int RookOpenFile = 10;
 const int RookSemiOpenFile = 5;
 const int QueenOpenFile = 5;
@@ -67,14 +66,14 @@ const int RookTable[64] = {
 //holds specified values for the king in the endgame based on its current square
 //current evaluation values active kings towards the center of the board
 const int KingE[64] = {	
-	-50, -10,  0,  0,  0,  0,-10,-50,
-	-10,   0, 10, 10, 10, 10,  0,-10,
-	  0 , 10, 20, 20, 20, 20, 10,  0,
-	  0,  10, 20, 40, 40, 20, 10,  0,
-	  0,  10, 20, 40, 40, 20, 10,  0,
-	  0,  10, 20, 20, 20, 20, 10,  0,
-	-10,   0, 10, 10, 10, 10,  0,-10,
-    -50, -10,  0,  0,  0,  0,-10,-50
+-50, -10,  0,  0,  0,  0,-10,-50,
+-10,   0, 10, 10, 10, 10,  0,-10,
+  0,  10, 20, 20, 20, 20, 10,  0,
+  0,  10, 20, 40, 40, 20, 10,  0,
+  0,  10, 20, 40, 40, 20, 10,  0,
+  0,  10, 20, 20, 20, 20, 10,  0,
+-10,   0, 10, 10, 10, 10,  0,-10,
+-50, -10,  0,  0,  0,  0,-10,-50
 };
 
 //holds evaluation for kings in non-endgame situations
@@ -96,29 +95,29 @@ int MaterialDraw(const S_BOARD *pos){
     if(!pos->pceNum[wR] && !pos->pceNum[bR] && !pos->pceNum[wQ] && !pos->pceNum[bQ]){
         //if no bishops
         if(!pos->pceNum[bB] && !pos->pceNum[wB]){
-            //check for 2N
+            //2 Knights
             if(pos->pceNum[wN] < 3 && pos->pceNum[bN] < 3) {return TRUE;}
         }
         //if no knights
         else if (!pos->pceNum[wN] && !pos->pceNum[bN]){
-            //check for two bishops
+            //2 Bishops
             if(abs(pos->pceNum[wB] - pos->pceNum[bB]) < 2) {return TRUE;}
         }
-        //check for bishop + knight
         else if((pos->pceNum[wN] < 3 && !pos->pceNum[wB]) || (pos->pceNum[wB] == 1 && !pos->pceNum[wN])){
+            //Bishop + Knight
             if((pos->pceNum[bN] < 3 && !pos->pceNum[bB]) || (pos->pceNum[bB] && !pos->pceNum[bN])) {return TRUE;}
         }
     }
-    //check for theoretical draws
     else if(!pos->pceNum[wQ] && !pos->pceNum[bQ]){
         if(pos->pceNum[wR] == 1 && pos->pceNum[bR] == 1){
             //R vs R+B or R vs R+N
             if((pos->pceNum[wN] + pos->pceNum[wB]) < 2 && (pos->pceNum[bN] + pos->pceNum[bB]) < 2) {return TRUE;}
         }
-        //R vs. B or R vs. N or R vs. B+N
+        //R vs B    or    R vs N    or     R vs B+N
         else if(pos->pceNum[wR] == 1 && !pos->pceNum[bR]){
             if((pos->pceNum[wN] + pos->pceNum[wB]) == 0 && (((pos->pceNum[bN] + pos->pceNum[bB]) == 1) || ((pos->pceNum[bN] + pos->pceNum[bB]) == 2))) {return TRUE;}   
         }
+        //R vs B    or    R vs N    or     R vs B+N
         else if(pos->pceNum[bR] == 1 && !pos->pceNum[wR]){
             if((pos->pceNum[bN] + pos->pceNum[bB]) == 0 && (((pos->pceNum[wN] + pos->pceNum[wB]) == 1) || ((pos->pceNum[wN] + pos->pceNum[wB]) == 2))) {return TRUE;}
         }
@@ -127,14 +126,15 @@ int MaterialDraw(const S_BOARD *pos){
 }
 
 //determine the static evaluation score of the current position
-//TODO create more sophisticated evaluation system
 int EvalPosition(const S_BOARD *pos){
+    ASSERT(CheckBoard(pos));
+
     int pce;
     int pceNum;
     int sq;
     int score = pos->material[WHITE] - pos->material[BLACK];
 
-    //check for theoretical draws
+    //check draw by insufficient material
     if((pos->pceNum[wP] == 0 && pos->pceNum[bP] == 0) && MaterialDraw(pos) == TRUE){return 0;}
 
     //evaluate pawns

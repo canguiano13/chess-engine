@@ -67,7 +67,7 @@ int MoveExists(S_BOARD *pos, const int move){
 static void AddQuietMove(const S_BOARD *pos, int move, S_MOVELIST *list){
     //validate start and destination squares of move
     ASSERT(SqOnBoard(FROMSQ(move)));
-    ASSERT(SQOnBoard(TOSQ(move)));
+    ASSERT(SqOnBoard(TOSQ(move)));
     
     list->moves[list->count].move = move;
     //score move after checking whether or not it is a move killer
@@ -88,7 +88,7 @@ static void AddQuietMove(const S_BOARD *pos, int move, S_MOVELIST *list){
 static void AddCaptureMove(const S_BOARD *pos, int move, S_MOVELIST *list){
     //validate start and destination squares of move
     ASSERT(SqOnBoard(FROMSQ(move)));
-    ASSERT(SQOnBoard(TOSQ(move)));
+    ASSERT(SqOnBoard(TOSQ(move)));
     ASSERT(PieceValid(CAPTURED(move)));
     list->moves[list->count].move = move;
     list->moves[list->count].score = MvvLvaScores[CAPTURED(move)][pos->pieces[FROMSQ(move)]] + 1000000;

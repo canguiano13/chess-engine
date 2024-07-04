@@ -176,7 +176,7 @@ void XBoard_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             continue;
         }
         if(!strcmp(command, "new")){
-            ClearPvTable(pos->PvTable);
+            ClearHashTable(pos->HashTable);
             engineSide = BLACK;
             ParseFen(START_FEN, pos);
             depth = -1;
@@ -291,7 +291,7 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
         }
         if(!strcmp(command, "black")){
             printf("Starting new game as black...\n");
-            ClearPvTable(pos->PvTable);
+            ClearHashTable(pos->HashTable);
             engineSide=WHITE;
             ParseFen(START_FEN, pos);
             continue;
@@ -299,14 +299,14 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
         if(!strcmp(command, "white")){
             printf("Starting new game as white...\n");
             printf("Game started. Enter a move to begin.\n");
-            ClearPvTable(pos->PvTable);
+            ClearHashTable(pos->HashTable);
             engineSide=BLACK;
             ParseFen(START_FEN, pos);
             continue;
         }
         if(!strcmp(command, "new")){
             printf("Restarting game...\n");
-            ClearPvTable(pos->PvTable);
+            ClearHashTable(pos->HashTable);
             engineSide=pos->side^1;
             if(engineSide == BLACK){
                 printf("Game Restarted. Enter a move to begin.\n");

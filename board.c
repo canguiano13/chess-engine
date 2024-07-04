@@ -326,7 +326,8 @@ void PrintBoard(S_BOARD *pos){
     int sq, rank, piece;
     int file = FILE_A;
 
-    printf("\n\nGAME BOARD:\n");
+    // printf("\n\nGAME BOARD:");
+    printf("\n");
 
     for(rank=RANK_8; rank>=RANK_1; rank--){
         printf("%d  ", rank+1); //add 1 to rank since they are zero-indexed

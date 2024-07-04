@@ -183,7 +183,7 @@ void MakeNullMove(S_BOARD *pos){
     return;
 }
 void TakeNullMove(S_BOARD *pos){
-    ASSERT(CHeckBoard(pos));
+    ASSERT(CheckBoard(pos));
 
     pos->hisPly--;
     pos->ply--;

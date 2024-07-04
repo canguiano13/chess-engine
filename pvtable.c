@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include "defs.h"
 
-const int PvSize = 0x100000 * 2;
+const int HashSize = 0x100000 * 64;
 
 int GetPvLine(const int depth, S_BOARD *pos){
     ASSERT(depth < MAX_SEARCH_DEPTH);
 
-    int move = ProbePvTable(pos);
+    int move = ProbePvMove(pos);
     int count = 0;
 
     while(move != NOMOVE && count < depth){
@@ -19,7 +19,7 @@ int GetPvLine(const int depth, S_BOARD *pos){
         else{
             break;
         }
-        move = ProbePvTable(pos);
+        move = ProbePvMove(pos);
     }
 
     //take back all moves made in the search
@@ -30,50 +30,121 @@ int GetPvLine(const int depth, S_BOARD *pos){
     return count;
 }
 
-void ClearPvTable(S_PVTABLE *table){
-    S_PVENTRY *pvEntry;
+void ClearHashTable(S_HASHTABLE *table){
+    S_HASHENTRY *tableEntry;
 
-    for(pvEntry = table->pTable; pvEntry < (table->pTable + table->numEntries); pvEntry++){
-        pvEntry->posKey = 0ULL;
-        pvEntry->move = NOMOVE;
+    for(tableEntry = table->pTable; tableEntry < (table->pTable + table->numEntries); tableEntry++){
+        tableEntry->posKey = 0ULL;
+        tableEntry->move = NOMOVE;
+        tableEntry->depth = 0;
+        tableEntry->score = 0;
+        tableEntry->flags = 0;
     }
+    table->newWrite = 0;
 }
 
-void InitPvTable(S_PVTABLE *table){
-    table->numEntries = PvSize / sizeof(S_PVENTRY);
+void InitHashTable(S_HASHTABLE *table){
+    table->numEntries = HashSize / sizeof(S_HASHENTRY);
     table->numEntries -= 2;
     
     //clear memory for table data if memory is not freed already
-    table->pTable = 0;
+    // table->pTable = 0;
     if(table->pTable != NULL) {
         free(table->pTable);
     }
     //allocate space for hash table entries
-    table->pTable = (S_PVENTRY *) malloc(table->numEntries * sizeof(S_PVENTRY));
+    table->pTable = (S_HASHENTRY*) malloc(table->numEntries * sizeof(S_HASHENTRY));
 
-    ClearPvTable(table);
+    if(table->pTable) printf("Hash Table Allocation Complete.\n");
+
+    ClearHashTable(table);
 }
 
-void StorePvMove(const S_BOARD *pos, const int move){
-    /* *TODO handle hash table collisions */
+int ProbeHashEntry(S_BOARD *pos, int *move, int *score, int alpha, int beta, int depth){
+    int index = pos->posKey % pos->HashTable->numEntries;
 
-    //get hash table index based on positionID
-    int index = (pos->posKey) % (pos->PvTable->numEntries);
-    //validate index based on hash table bounds
-    ASSERT(index >= 0 && index <= pos->PvTable->numEntries-1);
+    ASSERT(index >= 0 && index <= (pos->HashTable->numEntries-1));
+    ASSERT(depth >= 1 && depth < MAX_SEARCH_DEPTH)
+    ASSERT(alpha < beta);
+    ASSERT(alpha >= -INFINITY && alpha <= INFINITY);
+    ASSERT(beta >= -INFINITY && beta <= INFINITY);
+    ASSERT(pos->ply >= 0 && pos->ply < MAX_SEARCH_DEPTH);
+
+    if(pos->HashTable->pTable[index].posKey == pos->posKey){
+        *move = pos->HashTable->pTable[index].move;
+        if(pos->HashTable->pTable[index].depth >= depth){
+            pos->HashTable->hit++;
+
+            ASSERT(pos->HashTable->pTable[index].depth >= 1 && pos->HashTable->pTable[index].depth < MAX_SEARCH_DEPTH);
+            ASSERT(pos->HashTable->pTable[index].flags >= HFALPHA && pos->HashTable->pTable[index].flags <= HFEXACT);
+
+            *score = pos->HashTable->pTable[index].score;
+
+            if(*score > MATE) *score -= pos->ply;
+            else if(*score < MATE) *score += pos->ply;
+
+            switch(pos->HashTable->pTable[index].flags){
+                case HFALPHA:
+                    if(*score <= alpha){
+                        *score = alpha;
+                        return TRUE;
+                    }
+                    break;
+                case HFBETA:
+                    if(*score <= beta){
+                        *score = beta;
+                        return TRUE;
+                    }
+                    break;
+                case HFEXACT:
+                    return TRUE;
+                    break;
+                default: ASSERT(FALSE); break;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+void StoreHashEntry(S_BOARD *pos, const int move, int score, const int flags, const int depth){
+    //calculate hash table index based on positionID
+    int index = pos->posKey % pos->HashTable->numEntries;
+
+    //validate hash entry properties
+    ASSERT(index >= 0 && index <= pos->HashTable->numEntries-1);
+    ASSERT(depth >= 1 && depth < MAX_SEARCH_DEPTH);
+    ASSERT(flags >= HFALPHA && flags <= HFEXACT);
+    ASSERT(score >= -INFINITY && score <= INFINITY);
+    ASSERT(pos->ply >= 0 && pos->ply < MAX_SEARCH_DEPTH);
+
+    //handle collision
+    if(pos->HashTable->pTable[index].posKey == 0){
+        pos->HashTable->newWrite++;
+    }
+    else{
+        pos->HashTable->overWrite++;
+    }
+
+    if(score > MATE) score+=pos->ply;
+    else if(score < -MATE) score-= pos->ply;
+
     //insert hash table entry
-    pos->PvTable->pTable[index].move = move;
-    pos->PvTable->pTable[index].posKey = pos->posKey;
+    pos->HashTable->pTable[index].move = move;
+    pos->HashTable->pTable[index].posKey = pos->posKey;
+    pos->HashTable->pTable[index].flags = flags;
+    pos->HashTable->pTable[index].score = score;
+    pos->HashTable->pTable[index].depth = depth;
 }
 
-int ProbePvTable(const S_BOARD *pos){
+int ProbePvMove(const S_BOARD *pos){
     //get hash table index based on positionID
-    int index = (pos->posKey) % (pos->PvTable->numEntries);
+    int index = (pos->posKey) % (pos->HashTable->numEntries);
     //validate index based on hash table bounds
-    ASSERT(index >= 0 && index <= pos->PvTable->numEntries-1);
+    ASSERT(index >= 0 && index <= pos->HashTable->numEntries-1);
     //return corresponing hash table entry if it's key exists in the table
-    if(pos->PvTable->pTable[index].posKey == pos->posKey){
-        return pos->PvTable->pTable[index].move;
+    if(pos->HashTable->pTable[index].posKey == pos->posKey){
+        return pos->HashTable->pTable[index].move;
     }    
     //if key does not exist, return empty move
     return NOMOVE;
