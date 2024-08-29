@@ -236,6 +236,15 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             printf("VICE is thinking...\n");
             SearchPosition(pos, info);
         }
+
+        if(CheckResult(pos) == TRUE){
+            printf("Game Over!\n");
+            printf("\"new\"      - start new game\n");
+            printf("\"black\"    - play a new game as black\n");
+            printf("\"white\"    - play a new game as white\n");
+            printf("\"quit\"    - exit VICE:\n");
+        }
+
         printf("\nEnter command or next move:\n");
         printf("VICE > ");
 
@@ -259,15 +268,15 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             printf("\"new\"      - start new game with the same color pieces\n");
             printf("\"eval\"     - print VICE's evaluation of the current position\n");
             printf("\"set F\"    - set the board to a custom position F, where F is a FEN. Both sides keep the same color.");
-            printf("\"force\"    - computer will not think\n");
-            printf("\"go\"       - set computer thinking\n");
+            printf("\"force\"    - manually move pieces for both sides. computer will not play until resumed.\n");
+            printf("\"go\"       - start computer thinking. It will resume play from the active side.\n");
             printf("\"nopost\"   - do not show thinking\n");
             printf("\"post\"     - show thinking\n");
             printf("\"print\"    - show board:\n");
             printf("\"mirror\"   - print a mirrored version of the current board and its evaluation\n");
-            printf("\"depth x\"  - set thinking depth to x:\n");
-            printf("\"time x\"   - set thinking time to x seconds. depth will apply if set\n");
-            printf("\"view\"   - show current depth and movetime settings\n");
+            printf("\"depth X\"  - set thinking depth to X:\n");
+            printf("\"time X\"   - set thinking time to X seconds. depth will override if already set\n");
+            printf("\"view\"     - show current depth and movetime settings\n");
            
             printf("\nNOTE: to reset time and depth, set to 0\n");
             printf("\n**ENTER MOVES USING ALGEBRAIC NOTATION (e.g. b7b8q)**\n\nHave Fun!\n");
@@ -315,7 +324,27 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
             continue;
         }
         if(!strcmp(command, "eval")){
-            printf("VICE evaluates the position with score: %d\n", EvalPosition(pos));
+            //check if user is in forcemode and mark it if so
+            int forceFlag = engineSide == BOTH ? 1:0;
+            //if user if in force mode, notify user of evaluation perspective
+            if(forceFlag){
+                printf("VICE SAYS: \"Looks like you're in force mode. Please exit force mode before evaluating.\"\n");
+                printf("VICE SAYS: \"Type \"go\" to exit force mode. Why don't you let me make my own moves...\"\n");
+                continue;
+            }
+            //print evaluation with commentary from VICE
+            int eval = EvalPosition(pos);
+            if(eval == 0){
+                printf("VICE SAYS: \"You are holding a draw. Lucky you...\"\n");
+            }
+            else if((eval > 0 && engineSide == BLACK) || (eval < 0 && engineSide == WHITE)){
+                printf("VICE SAYS: \"You are winning, for now...\"\n");
+            }
+            else{
+                printf("VICE SAYS: \"You are losing, see if you can last a few more moves...\"\n");
+            }
+            printf("VICE evaluates the position with score: %d\n", eval);
+            
             continue;
         }
         if(!strcmp(command, "set")){
