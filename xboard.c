@@ -261,13 +261,13 @@ void Console_Loop(S_BOARD *pos, S_SEARCHINFO *info){
         if(!strcmp(command, "help")){
             printf("\n***********************************************\n");
             printf("Commands:\n");
-            printf("\"quit\"     - quit game and exit VICE:\n");
+            printf("\"quit\"     - quit game and exit VICE\n");
             printf("\"take\"     - take back your move\n");
             printf("\"black\"    - play a new game as black\n");
             printf("\"white\"    - play a new game as white\n");
             printf("\"new\"      - start new game with the same color pieces\n");
             printf("\"eval\"     - print VICE's evaluation of the current position\n");
-            printf("\"set F\"    - set the board to a custom position F, where F is a FEN. Both sides keep the same color.");
+            printf("\"set F\"    - set the board to a custom position F, where F is a FEN. Both sides keep the same color.\n");
             printf("\"force\"    - manually move pieces for both sides. computer will not play until resumed.\n");
             printf("\"go\"       - start computer thinking. It will resume play from the active side.\n");
             printf("\"nopost\"   - do not show thinking\n");
