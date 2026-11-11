@@ -1,2 +1,4 @@
 # chess-engine
- Personal project repository used to build a simple chess engine from scratch in C.
+Simple chess engine from scratch in C.
+
+Based on the [Bluefever Software](https://www.youtube.com/playlist?list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg) series.
