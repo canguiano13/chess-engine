@@ -53,3 +53,6 @@ dkms.conf
 
 #ignore the board representation permissions file
 ~$*.xlsx
+
+.vscode
+.vscode/*

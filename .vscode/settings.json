@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "defs.h": "c",
-        "stdlib.h": "c",
-        "stdio.h": "c",
-        "windows.h": "c",
-        "time.h": "c"
-    }
-}
